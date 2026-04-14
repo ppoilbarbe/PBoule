@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
-    # Déclenche les pipelines release et pages uniquement sur les tags semver
-    # stricts (vX.Y.Z). Les tags comme v1.0.0-alpha ou v1.0 sont exclus.
+    # lint + generate tournent sur toutes les branches (test systématique).
+    # Les tags semver stricts (vX.Y.Z) déclenchent en plus release et pages.
+    # Les tags comme v1.0.0-alpha ou v1.0 sont exclus du pipeline release/pages.
+    branches: ["**"]
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   pull_request:
     branches: ["main"]
@@ -23,16 +24,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Configurer Python
-        uses: actions/setup-python@v6
+      - name: Configurer l'environnement conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Installer ruff et pre-commit
-        run: pip install ruff pre-commit
+          environment-file: environment.yml
+          activate-environment: petanque
 
       - name: Exécuter pre-commit (tous les fichiers)
+        shell: bash -el {0}
         run: pre-commit run --all-files
         env:
           SKIP: no-commit-to-branch
@@ -49,25 +48,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Installer les dépendances système (cairosvg)
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends \
-            libcairo2 libpango-1.0-0 libpangocairo-1.0-0 \
-            libgdk-pixbuf2.0-0 libffi-dev
-
-      - name: Configurer Python
-        uses: actions/setup-python@v6
+      - name: Configurer l'environnement conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Installer les dépendances Python
-        run: |
-          pip install --upgrade pip
-          pip install reportlab cairosvg svglib pyyaml
+          environment-file: environment.yml
+          activate-environment: petanque
 
       - name: Calculer les caractéristiques des logos
+        shell: bash -el {0}
         run: |
           python python/compute_logo_yaml.py \
             --logo-main     logo_COF_montlaur_rose.png \
@@ -76,6 +64,7 @@ jobs:
             --output        logo.yaml
 
       - name: Générer les feuilles de poule
+        shell: bash -el {0}
         run: |
           mkdir -p documents
           python python/generate_feuille_poule.py \
@@ -86,6 +75,7 @@ jobs:
             --logo-yaml  logo.yaml
 
       - name: Générer la feuille d'inscription
+        shell: bash -el {0}
         run: |
           python python/generate_feuille_inscription.py \
             --n-equipes 32 \
@@ -93,6 +83,7 @@ jobs:
             --logo-yaml logo.yaml
 
       - name: Vérifier les fichiers produits
+        shell: bash -el {0}
         run: |
           ls -lh documents/*.pdf
           test -f documents/feuille_inscription.pdf
@@ -120,11 +111,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Configurer Python
-        uses: actions/setup-python@v6
+      - name: Configurer l'environnement conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          python-version: "3.12"
-          cache: pip
+          environment-file: environment.yml
+          activate-environment: petanque
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -141,14 +132,15 @@ jobs:
           ls -lh petanque-documents-*.zip
 
       - name: Extraire les notes de release depuis CHANGELOG.md
+        shell: bash -el {0}
         run: |
-          pip install --quiet --upgrade pip
           python scripts/extract_changelog.py "${{ github.ref_name }}" \
             > /tmp/release_notes.md
           echo "--- Notes de release ---"
           cat /tmp/release_notes.md
 
       - name: Publier la GitHub Release
+        shell: bash -el {0}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -181,8 +173,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Installer pandoc
-        run: sudo apt-get update -q && sudo apt-get install -y --no-install-recommends pandoc
+      - name: Configurer l'environnement conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: petanque
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -191,6 +186,7 @@ jobs:
           path: documents/
 
       - name: Générer le site de documentation
+        shell: bash -el {0}
         run: |
           python scripts/generate_pages.py \
             --docs-dir    documents \

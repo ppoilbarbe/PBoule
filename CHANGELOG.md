@@ -3,6 +3,18 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.1.1] – 2026-04-14
+
+### Fixed
+- **CI — génération des documents** : migration de `pip` + `apt-get` vers
+  `conda-incubator/setup-miniconda` avec `environment.yml` dans tous les
+  jobs. `pycairo` (dépendance transitive de `svglib`) est désormais fourni
+  par conda-forge (wheel binaire), ce qui supprime la compilation depuis les
+  sources et l'erreur « Dependency "cairo" not found ».
+- **CI — déclencheur push** : étendu à toutes les branches (`branches: ["**"]`)
+  afin que `lint` et `generate` s'exécutent systématiquement, pas seulement
+  sur `main`.
+
 ## [0.1.0] – 2026-04-14
 
 ### Added

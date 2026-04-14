@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ---------------------------------------------------------------------------
 [project]
 name = "pboule"
-version = "0.1.0"
+version = "0.1.1"
 description = "Générateur de documents pour compétitions de pétanque"
 authors = [{ name = "Philippe Poilbarbe" }]
 license = { text = "MIT" }
