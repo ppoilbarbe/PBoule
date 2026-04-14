@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ---------------------------------------------------------------------------
+# Métadonnées du projet
+# ---------------------------------------------------------------------------
+[project]
+name = "pboule"
+version = "0.1.0"
+description = "Générateur de documents pour compétitions de pétanque"
+authors = [{ name = "Philippe Poilbarbe" }]
+license = { text = "MIT" }
+requires-python = ">=3.12"
+keywords = ["pétanque", "compétition", "PDF", "sport"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Other/Nonlisted Topic",
+]
+dependencies = [
+    "reportlab",
+    "cairosvg",
+    "svglib",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4",
+    "pre-commit>=3.6",
+]
+
+# ---------------------------------------------------------------------------
+# Ruff — linter & formateur
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["python", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "C4", "PIE", "SIM"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"

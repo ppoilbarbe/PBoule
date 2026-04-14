@@ -1,0 +1,56 @@
+# Licences — PBoule et outils tiers
+
+---
+
+## PBoule
+
+MIT License
+
+Copyright (c) 2026 Philippe Poilbarbe
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Outils tiers
+
+| Outil | Rôle | Licence | URL |
+|---|---|---|---|
+| Python 3.12 | Langage d'exécution | PSF-2.0 | https://docs.python.org/3/license.html |
+| ReportLab | Génération PDF | BSD | https://www.reportlab.com/dev/opensource/ |
+| cairosvg | Rasterisation SVG → PNG | LGPL-3.0 | https://github.com/Kozea/CairoSVG/blob/master/LICENSE |
+| svglib | Lecture SVG | LGPL-3.0 | https://github.com/deeplook/svglib/blob/master/LICENSE |
+| PyYAML | Lecture YAML/JSON | MIT | https://github.com/yaml/pyyaml/blob/main/LICENSE |
+| pandoc | Conversion Markdown → PDF/HTML | GPL-2.0-or-later | https://github.com/jgm/pandoc/blob/main/LICENSE |
+| tectonic | Moteur LaTeX/PDF | MIT | https://github.com/tectonic-typesetting/tectonic/blob/master/LICENSE |
+| ruff | Linter et formateur Python | MIT | https://github.com/astral-sh/ruff/blob/main/LICENSE |
+| pre-commit | Hooks de pré-commit git | MIT | https://github.com/pre-commit/pre-commit/blob/main/LICENSE |
+| gh (GitHub CLI) | Interface GitHub en ligne de commande | MIT | https://github.com/cli/cli/blob/trunk/LICENSE |
+
+### Notes sur les licences copyleft
+
+**GPL-2.0-or-later (pandoc)** — pandoc est un outil externe invoqué en
+sous-processus par le Makefile. PBoule ne lie pas pandoc statiquement et ne
+distribue pas son code source. L'utilisation en outil externe n'impose pas de
+contamination de la licence de PBoule.
+
+**LGPL-3.0 (cairosvg, svglib)** — ces bibliothèques sont utilisées comme
+dépendances Python dynamiques. La LGPL-3.0 autorise cet usage sans contraindre
+la licence du projet utilisant la bibliothèque, à condition de ne pas modifier
+le code de la bibliothèque elle-même.

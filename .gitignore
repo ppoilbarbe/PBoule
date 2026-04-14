@@ -1,0 +1,57 @@
+# ── Documents générés et site statique ───────────────────────────────────────
+# logo.yaml et logo_petanque_rend.png sont gérés en configuration (non ignorés)
+documents/
+pages/
+
+# ── Fichiers image non versionnés ────────────────────────────────────────────
+logo_COF_montlaur_rose_original.png
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Environnements virtuels ───────────────────────────────────────────────────
+.venv/
+venv/
+env/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Claude Code ───────────────────────────────────────────────────────────────
+.claude/
+
+# ── IDEs ─────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.iml
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Windows ───────────────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── Linux ─────────────────────────────────────────────────────────────────────
+.directory
+
+# ── Conda ─────────────────────────────────────────────────────────────────────
+*.conda
+*.tar.bz2

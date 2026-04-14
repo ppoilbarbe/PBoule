@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="4 16 79 44"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Dégradé boule arrière-gauche : acier neutre -->
+    <radialGradient id="boule1" cx="38%" cy="32%" r="60%">
+      <stop offset="0%"   stop-color="#e8e8e8" />
+      <stop offset="45%"  stop-color="#9e9e9e" />
+      <stop offset="100%" stop-color="#3a3a3a" />
+    </radialGradient>
+    <!-- Dégradé boule arrière-droite : acier bleuté -->
+    <radialGradient id="boule2" cx="38%" cy="32%" r="60%">
+      <stop offset="0%"   stop-color="#dde8f0" />
+      <stop offset="45%"  stop-color="#7da4bc" />
+      <stop offset="100%" stop-color="#1c3a52" />
+    </radialGradient>
+    <!-- Dégradé boule avant-centre : acier chaud -->
+    <radialGradient id="boule3" cx="38%" cy="32%" r="60%">
+      <stop offset="0%"   stop-color="#f0e8dc" />
+      <stop offset="45%"  stop-color="#b08860" />
+      <stop offset="100%" stop-color="#3d2410" />
+    </radialGradient>
+    <!-- Dégradé cochonnet : orange-rouge bois réaliste -->
+    <radialGradient id="cochonnet" cx="38%" cy="32%" r="60%">
+      <stop offset="0%"   stop-color="#ffd080" />
+      <stop offset="40%"  stop-color="#d45a00" />
+      <stop offset="100%" stop-color="#5a1a00" />
+    </radialGradient>
+    <!-- Ombre portée -->
+    <filter id="ombre" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="1" dy="1.5" stdDeviation="1.2" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <!-- Boule arrière gauche -->
+  <circle cx="22" cy="36" r="12" fill="url(#boule1)" filter="url(#ombre)" />
+  <!-- Reflet spéculaire boule gauche -->
+  <ellipse cx="18" cy="31" rx="4" ry="2.5"
+           fill="white" opacity="0.45"
+           transform="rotate(-20,18,31)" />
+  <!-- Boule arrière droite -->
+  <circle cx="58" cy="33" r="12" fill="url(#boule2)" filter="url(#ombre)" />
+  <!-- Reflet spéculaire boule droite -->
+  <ellipse cx="54" cy="28" rx="4" ry="2.5"
+           fill="white" opacity="0.45"
+           transform="rotate(-20,54,28)" />
+  <!-- Boule avant centre -->
+  <circle cx="40" cy="41" r="13" fill="url(#boule3)" filter="url(#ombre)" />
+  <!-- Reflet spéculaire boule avant -->
+  <ellipse cx="35.5" cy="35.5" rx="4.5" ry="2.8"
+           fill="white" opacity="0.45"
+           transform="rotate(-20,35.5,35.5)" />
+  <!-- Cochonnet -->
+  <circle cx="72" cy="43" r="5" fill="url(#cochonnet)" filter="url(#ombre)" />
+  <!-- Reflet spéculaire cochonnet -->
+  <ellipse cx="70.5" cy="41.5" rx="1.8" ry="1.1"
+           fill="white" opacity="0.5"
+           transform="rotate(-20,70.5,41.5)" />
+</svg>

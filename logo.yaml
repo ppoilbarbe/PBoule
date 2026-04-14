@@ -1,0 +1,12 @@
+{
+  "logo_h_cm": 3.5,
+  "logo_main": {
+    "path": "logo_COF_montlaur_rose.png",
+    "aspect_ratio": 2.102539
+  },
+  "logo_petanque": {
+    "path": "logo_petanque.svg",
+    "aspect_ratio": 1.795455,
+    "png_path": "logo_petanque_rend.png"
+  }
+}

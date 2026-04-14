@@ -1,0 +1,50 @@
+# Changelog
+
+Tous les changements notables de ce projet sont documentés ici.
+Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
+
+## [0.1.0] – 2026-04-14
+
+### Added
+- **Feuilles de poule** : génération PDF A4 paysage pour les poules A–H
+  (4 ou 5 équipes) et les cas « Poule UNIQUE » non décomposables (6, 7, 11 équipes
+  avec `POOL_BASE=4`).
+- **Feuille d'inscription** : génération PDF A4 portrait (jusqu'à 32 équipes,
+  découpe automatique sur 2 pages si nécessaire).
+- **Gestion des logos** : `compute_logo_yaml.py` calcule les ratios d'aspect,
+  rasterise le SVG pétanque en PNG (cairosvg 150 dpi) et écrit `logo.yaml` (cache
+  JSON persistant). Logo COF en haut à droite ; logo pétanque superposé en
+  bas-gauche à 1/3 de la taille du logo principal, première page uniquement.
+- **Makefile** : cibles `all`, `logo`, `feuilles-poules`, `feuille-inscription`,
+  `petanque-pdf`, `pages`, `lint`, `install-hooks`, `env`, `check`, `init`,
+  `clean`, `clean-all`. Paramètres affichés dans `make help`.
+- **Site de documentation statique** (`make pages`) : `scripts/generate_pages.py`
+  combine les spécifications, les liens vers les PDF et le changelog en un
+  `index.html` avec table des matières (pandoc), copie les PDF dans `pages/`.
+- **Pipeline CI GitHub Actions** (`.github/workflows/ci.yml`) :
+  - Job `lint` (push, PR) : pre-commit ruff sur tous les fichiers.
+  - Job `generate` (push, PR) : génération des PDF, archivage artefact.
+  - Job `release` (tag `vX.Y.Z`) : GitHub Release avec ZIP + PDF individuels,
+    notes extraites depuis `CHANGELOG.md` via `scripts/extract_changelog.py`.
+  - Job `pages` (tag `vX.Y.Z`) : déploiement GitHub Pages.
+- **Hooks pre-commit** : `trailing-whitespace`, `end-of-file-fixer`,
+  `check-yaml`, `check-added-large-files`, `check-merge-conflict`, ruff lint,
+  ruff format.
+- **`pyproject.toml`** : nom `pboule`, version, licence MIT, métadonnées,
+  dépendances runtime et dev.
+- **`LICENSES`** : licence MIT complète du projet et tableau des licences de
+  tous les outils tiers (Python, ReportLab, cairosvg, svglib, PyYAML, pandoc,
+  tectonic, ruff, pre-commit, gh).
+- **`CHANGELOG.md`**, **`PETANQUE.md`** (spécifications complètes),
+  **`CLAUDE.md`** (instructions de travail), **`environment.yml`**.
+
+### Changed
+- **Feuille d'inscription** : le titre est désormais centré verticalement sur
+  le canvas dans la zone logo ; le tableau commence strictement sous le logo
+  (plus de risque de chevauchement).
+- **Feuilles de poule — tableau Résultats** : tiret quadratin (—) centré dans
+  chaque cellule de la colonne Résultats.
+- **Feuilles de poule — tableau Classement** : ajout de la colonne « Points »
+  après « Équipe ».
+- **Feuilles de poule** : le logo n'est dessiné que sur la première page en
+  cas de document multi-pages.
