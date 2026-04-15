@@ -4,7 +4,7 @@ Module partagé pour le rendu des logos sur les documents PDF.
 Expose draw_logos(canvas, page_w, page_h, marge, logo_data)
 qui dessine deux logos en haut à droite de la page :
   • logo principal (PNG) calé contre la marge droite
-  • logo pétanque (SVG) superposé en bas à gauche du logo principal
+  • logo pétanque (PNG) superposé en bas à gauche du logo principal
 
 logo_data est un dict chargé depuis logo.yaml (produit par compute_logo_yaml.py).
 Les ratios d'aspect sont pré-calculés ; seul le rendu image est effectué ici.
@@ -19,23 +19,6 @@ from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
 
 # ── Rendu image ───────────────────────────────────────────────────────────────
-
-
-def _render_svg(path: Path, h_pt: float) -> ImageReader | None:
-    """
-    Rend un fichier SVG en ImageReader via cairosvg.
-    h_pt : hauteur cible en points PDF.
-    Retourne None si cairosvg n'est pas disponible ou en cas d'erreur.
-    """
-    try:
-        import cairosvg  # import optionnel
-
-        dpi = 150
-        h_px = int(h_pt / 72 * dpi)
-        data = cairosvg.svg2png(url=str(path), output_height=h_px)
-        return ImageReader(BytesIO(data))
-    except Exception:
-        return None
 
 
 def _load_png(path: Path) -> ImageReader | None:
@@ -61,7 +44,7 @@ def draw_logos(
 
     Disposition :
       • Logo principal (PNG) calé contre la marge droite, hauteur logo_h.
-      • Logo pétanque (SVG) superposé en bas à gauche du logo principal,
+      • Logo pétanque (PNG) superposé en bas à gauche du logo principal,
         à la même hauteur logo_h.
 
     Si logo_data est None ou vide, aucun logo n'est dessiné.
@@ -95,7 +78,7 @@ def draw_logos(
             except Exception:
                 pass
 
-    # ── Logo pétanque (SVG) ───────────────────────────────────────────────────
+    # ── Logo pétanque (PNG) ───────────────────────────────────────────────────
     pet_img = None
     pet_w = 0.0
 
@@ -105,7 +88,7 @@ def draw_logos(
         if path.exists():
             try:
                 pet_w = logo_h * pet_info["aspect_ratio"]
-                pet_img = _render_svg(path, logo_h)
+                pet_img = _load_png(path)
             except Exception:
                 pass
 

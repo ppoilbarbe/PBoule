@@ -3,6 +3,33 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.0] – 2026-04-15
+
+### Changed
+- **Renommage du projet** : « petanque » → « pboule » dans tous les fichiers
+  (environnement conda, CI, noms d'artefacts, titres de release).
+- **Renommage du fichier de spécifications** : `PETANQUE.md` → `PBOULE.md`.
+- **Migration des scripts** : `scripts/extract_changelog.py` et
+  `scripts/generate_pages.py` déplacés dans `python/`.
+- **Logo pétanque** : remplacement du SVG par le PNG généré
+  (`logo_petanque.png`) ; CI et `compute_logo_yaml.py` mis à jour.
+- **`generate_pages.py`** : réécriture complète — TOC et logos côte à côte
+  (flex), CSS enrichi, section « Documents créés » avec sous-groupes
+  (inscription, poules uniques, poules standard par taille).
+- **`PBOULE.md` — en-tête LaTeX** : correction du positionnement et des
+  tailles des logos dans `pboule.pdf` (`\rlap` pour la superposition,
+  hauteurs 3,5 cm et 1,167 cm conformes à la spec).
+
+### Added
+- **`README.md`** : présentation du projet, liens GitHub et GitHub Pages,
+  instructions d'installation et de génération.
+- **`creation_logo_petanque.md`** : documentation de la création du logo.
+
+### Fixed
+- **Spécifications logos** : distinction entre la disposition dans les
+  documents PDF et dans le site de documentation (`index.html`) — logos à
+  droite de la page au même niveau que la table des matières.
+
 ## [0.1.1] – 2026-04-14
 
 ### Fixed
@@ -30,14 +57,14 @@ Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 - **Makefile** : cibles `all`, `logo`, `feuilles-poules`, `feuille-inscription`,
   `petanque-pdf`, `pages`, `lint`, `install-hooks`, `env`, `check`, `init`,
   `clean`, `clean-all`. Paramètres affichés dans `make help`.
-- **Site de documentation statique** (`make pages`) : `scripts/generate_pages.py`
+- **Site de documentation statique** (`make pages`) : `python/generate_pages.py`
   combine les spécifications, les liens vers les PDF et le changelog en un
   `index.html` avec table des matières (pandoc), copie les PDF dans `pages/`.
 - **Pipeline CI GitHub Actions** (`.github/workflows/ci.yml`) :
   - Job `lint` (push, PR) : pre-commit ruff sur tous les fichiers.
   - Job `generate` (push, PR) : génération des PDF, archivage artefact.
   - Job `release` (tag `vX.Y.Z`) : GitHub Release avec ZIP + PDF individuels,
-    notes extraites depuis `CHANGELOG.md` via `scripts/extract_changelog.py`.
+    notes extraites depuis `CHANGELOG.md` via `python/extract_changelog.py`.
   - Job `pages` (tag `vX.Y.Z`) : déploiement GitHub Pages.
 - **Hooks pre-commit** : `trailing-whitespace`, `end-of-file-fixer`,
   `check-yaml`, `check-added-large-files`, `check-merge-conflict`, ruff lint,

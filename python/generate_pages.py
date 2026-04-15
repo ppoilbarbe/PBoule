@@ -2,18 +2,20 @@
 """
 Génère le site de documentation statique dans pages/.
 
-Combine les spécifications (PETANQUE.md), une section «Documents créés»
+Combine les spécifications (PBOULE.md), une section «Documents créés»
 (liste des PDF avec liens) et le CHANGELOG.md en un unique index.html,
 puis copie les PDF dans pages/.
 
 Usage :
-    python scripts/generate_pages.py
-    python scripts/generate_pages.py --docs-dir documents/ --output-dir pages/
+    python python/generate_pages.py
+    python python/generate_pages.py --docs-dir documents/ --output-dir pages/
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import re
 import shutil
 import subprocess
 import tempfile
@@ -45,18 +47,39 @@ h2 {
     padding-bottom: 0.2em;
 }
 h3 { font-size: 1.1em; color: #1565C0; }
+/* Conteneur TOC + logos côte à côte */
+.toc-logos-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
 #TOC {
     background: #F8F8F8;
     border: 1px solid #DDD;
     border-radius: 4px;
     padding: 0.8rem 1.5rem;
-    margin-bottom: 2rem;
     display: inline-block;
     min-width: 280px;
+    flex-shrink: 0;
 }
+/* Dans le wrapper, la marge basse du TOC est gérée par le conteneur */
+.toc-logos-wrapper #TOC { margin-bottom: 0; }
+/* TOC hors wrapper (si logos absents) */
+#TOC:not(.toc-logos-wrapper #TOC) { margin-bottom: 2rem; }
 #TOC ul { margin: 0.3em 0; padding-left: 1.5em; }
 #TOC a { color: #1565C0; text-decoration: none; }
 #TOC a:hover { text-decoration: underline; }
+/* Bloc logos */
+.logo-block { flex-shrink: 0; }
+.logo-inner { position: relative; display: inline-block; }
+.logo-main  { display: block; }
+.logo-secondary {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
 table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
 th {
     background: #1565C0;
@@ -101,6 +124,87 @@ blockquote {
 """
 
 
+# ── Logos ─────────────────────────────────────────────────────────────────────
+
+_SCREEN_DPI = 96  # résolution écran de référence pour la conversion cm → px
+
+
+def _load_logo_data(logo_yaml: Path | None) -> dict | None:
+    """Charge les données des logos depuis logo.yaml."""
+    if logo_yaml is None or not logo_yaml.exists():
+        return None
+    try:
+        with open(logo_yaml, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _build_logo_html(logo_data: dict) -> str:
+    """
+    Génère le fragment HTML du bloc logos.
+
+    Disposition identique aux PDF :
+      • logo principal en taille pleine
+      • logo secondaire superposé en bas à gauche, à 1/3 de la hauteur
+    """
+    logo_h_cm = logo_data.get("logo_h_cm", 3.5)
+    logo_h_px = round(logo_h_cm / 2.54 * _SCREEN_DPI)
+    pet_h_px = round(logo_h_px / 3)
+
+    cof = logo_data.get("logo_main")
+    pet = logo_data.get("logo_petanque")
+
+    if not cof and not pet:
+        return ""
+
+    parts = ['<div class="logo-block"><div class="logo-inner">']
+
+    if cof and cof.get("path"):
+        fname = Path(cof["path"]).name
+        parts.append(
+            f'<img src="{fname}" class="logo-main"'
+            f' style="height:{logo_h_px}px" alt="Logo COF Montlaur" />'
+        )
+
+    if pet and pet.get("path"):
+        fname = Path(pet["path"]).name
+        parts.append(
+            f'<img src="{fname}" class="logo-secondary"'
+            f' style="height:{pet_h_px}px" alt="Logo pétanque" />'
+        )
+
+    parts.append("</div></div>")
+    return "\n".join(parts)
+
+
+def _inject_logos(html_path: Path, logo_html: str) -> None:
+    """
+    Enveloppe le <nav id="TOC"> et le bloc logos dans un conteneur flex.
+
+    Avant :  <nav id="TOC">…</nav>
+    Après  : <div class="toc-logos-wrapper">
+               <nav id="TOC">…</nav>
+               <div class="logo-block">…</div>
+             </div>
+    """
+    content = html_path.read_text(encoding="utf-8")
+    toc_re = re.compile(r'(<nav id="TOC".*?</nav>)', re.DOTALL)
+
+    def wrap(m: re.Match) -> str:
+        return (
+            '<div class="toc-logos-wrapper">\n'
+            + m.group(1)
+            + "\n"
+            + logo_html
+            + "\n</div>"
+        )
+
+    new_content, n = toc_re.subn(wrap, content, count=1)
+    if n:
+        html_path.write_text(new_content, encoding="utf-8")
+
+
 # ── Section «Documents créés» ─────────────────────────────────────────────────
 
 
@@ -110,7 +214,7 @@ def _pdf_link(p: Path) -> str:
 
 def _section_documents(docs_dir: Path) -> str:
     """Génère le markdown de la section «Documents créés»."""
-    pdfs = sorted(p for p in docs_dir.glob("*.pdf") if p.name != "petanque.pdf")
+    pdfs = sorted(p for p in docs_dir.glob("*.pdf") if p.name != "pboule.pdf")
     if not pdfs:
         return "# Documents créés\n\n*Aucun document disponible.*\n"
 
@@ -163,8 +267,10 @@ def _section_documents(docs_dir: Path) -> str:
 def generer(
     docs_dir: Path,
     output_dir: Path,
-    petanque_md: Path,
+    pboule_md: Path,
     changelog_md: Path,
+    logo_creation_md: Path | None = None,
+    logo_yaml: Path | None = None,
 ) -> None:
     """Génère le site statique dans output_dir."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -182,12 +288,15 @@ def generer(
             tmp.write(docs_section)
             tmp_docs = Path(tmp.name)
 
-        # Pandoc : PETANQUE.md + docs + CHANGELOG → index.html
+        # Pandoc : PBOULE.md [+ logo-creation] + docs + CHANGELOG → index.html
+        sources = [str(pboule_md)]
+        if logo_creation_md is not None and logo_creation_md.exists():
+            sources.append(str(logo_creation_md))
+        sources += [str(tmp_docs), str(changelog_md)]
+
         cmd = [
             "pandoc",
-            str(petanque_md),
-            str(tmp_docs),
-            str(changelog_md),
+            *sources,
             "--standalone",
             "--toc",
             "--toc-depth=3",
@@ -208,10 +317,24 @@ def generer(
         if tmp_docs is not None:
             tmp_docs.unlink(missing_ok=True)
 
+    # Logos : copie des fichiers image + injection dans index.html
+    logo_data = _load_logo_data(logo_yaml)
+    if logo_data:
+        for key in ("logo_main", "logo_petanque"):
+            info = logo_data.get(key)
+            if info and info.get("path"):
+                src = Path(info["path"])
+                if src.exists():
+                    shutil.copy2(src, output_dir / src.name)
+
+        logo_html = _build_logo_html(logo_data)
+        if logo_html:
+            _inject_logos(output_dir / "index.html", logo_html)
+
     # Copie des PDF
     copied = 0
     for pdf in sorted(docs_dir.glob("*.pdf")):
-        if pdf.name == "petanque.pdf":
+        if pdf.name == "pboule.pdf":
             continue
         shutil.copy2(pdf, output_dir / pdf.name)
         copied += 1
@@ -241,11 +364,11 @@ def main() -> None:
         help="Dossier de sortie (défaut : pages/)",
     )
     ap.add_argument(
-        "--petanque-md",
+        "--pboule-md",
         type=Path,
-        default=Path("PETANQUE.md"),
+        default=Path("PBOULE.md"),
         metavar="FILE",
-        help="Fichier de spécifications (défaut : PETANQUE.md)",
+        help="Fichier de spécifications (défaut : PBOULE.md)",
     )
     ap.add_argument(
         "--changelog",
@@ -254,8 +377,29 @@ def main() -> None:
         metavar="FILE",
         help="Fichier de changelog (défaut : CHANGELOG.md)",
     )
+    ap.add_argument(
+        "--logo-creation-md",
+        type=Path,
+        default=None,
+        metavar="FILE",
+        help="Documentation de création du logo (optionnel)",
+    )
+    ap.add_argument(
+        "--logo-yaml",
+        type=Path,
+        default=None,
+        metavar="FILE",
+        help="Cache des caractéristiques des logos, logo.yaml (optionnel)",
+    )
     args = ap.parse_args()
-    generer(args.docs_dir, args.output_dir, args.petanque_md, args.changelog)
+    generer(
+        args.docs_dir,
+        args.output_dir,
+        args.pboule_md,
+        args.changelog,
+        args.logo_creation_md,
+        args.logo_yaml,
+    )
 
 
 if __name__ == "__main__":

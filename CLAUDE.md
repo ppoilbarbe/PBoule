@@ -4,7 +4,7 @@ Après chaque modification du projet, maintenir à jour les trois fichiers de r�
 
 | Fichier | Rôle |
 |---|---|
-| **PETANQUE.md** | Spécifications du domaine (règles, formats, algorithmes) |
+| **PBOULE.md** | Spécifications du domaine (règles, formats, algorithmes) |
 | **Makefile** | Cibles de génération et paramètres |
 | **CLAUDE.md** | Instructions de travail pour Claude |
 
@@ -16,7 +16,7 @@ Après chaque modification du projet, maintenir à jour les trois fichiers de r�
 * Les noms de variables, fonctions et fichiers restent en anglais (convention technique).
 
 # Spécifications
-* Les spécifications du projet sont enregistrées dans le fichier **PETANQUE.md** et doivent être lues depuis ce fichier au début de chaque tâche nécessitant une compréhension du domaine.
+* Les spécifications du projet sont enregistrées dans le fichier **PBOULE.md** et doivent être lues depuis ce fichier au début de chaque tâche nécessitant une compréhension du domaine.
 
 # Workflow Git
 
@@ -44,7 +44,7 @@ Changed / Fixed). Le pipeline CI extrait les notes de release depuis ce fichier.
 # Environnement
 
 ## Général
-* L'environnement conda par défaut est **petanque**. Toutes les commandes Python doivent être exécutées dans cet environnement.
+* L'environnement conda par défaut est **pboule**. Toutes les commandes Python doivent être exécutées dans cet environnement.
 * Les scripts Python de génération sont dans le sous-répertoire **python/**.
 
 ## Installation (environnement conda)

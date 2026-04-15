@@ -28,7 +28,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
-          activate-environment: petanque
+          activate-environment: pboule
 
       - name: Exécuter pre-commit (tous les fichiers)
         shell: bash -el {0}
@@ -38,7 +38,7 @@ jobs:
 
   # -------------------------------------------------------------------------
   # Génération des documents — tests des scripts Python
-  # (sans tectonic : petanque-pdf exclu car nécessite une cache LaTeX)
+  # (sans tectonic : pboule-pdf exclu car nécessite une cache LaTeX)
   # -------------------------------------------------------------------------
   generate:
     name: Génération des documents
@@ -52,14 +52,14 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
-          activate-environment: petanque
+          activate-environment: pboule
 
       - name: Calculer les caractéristiques des logos
         shell: bash -el {0}
         run: |
           python python/compute_logo_yaml.py \
             --logo-main     logo_COF_montlaur_rose.png \
-            --logo-petanque logo_petanque.svg \
+            --logo-petanque logo_petanque.png \
             --logo-height   3.5 \
             --output        logo.yaml
 
@@ -115,7 +115,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
-          activate-environment: petanque
+          activate-environment: pboule
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -127,14 +127,14 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           cd documents
-          zip -r "../petanque-documents-${TAG}.zip" ./*.pdf
+          zip -r "../pboule-documents-${TAG}.zip" ./*.pdf
           cd ..
-          ls -lh petanque-documents-*.zip
+          ls -lh pboule-documents-*.zip
 
       - name: Extraire les notes de release depuis CHANGELOG.md
         shell: bash -el {0}
         run: |
-          python scripts/extract_changelog.py "${{ github.ref_name }}" \
+          python python/extract_changelog.py "${{ github.ref_name }}" \
             > /tmp/release_notes.md
           echo "--- Notes de release ---"
           cat /tmp/release_notes.md
@@ -146,9 +146,9 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           gh release create "${TAG}" \
-            --title "Pétanque ${TAG}" \
+            --title "PBoule ${TAG}" \
             --notes-file /tmp/release_notes.md \
-            petanque-documents-${TAG}.zip \
+            pboule-documents-${TAG}.zip \
             documents/feuille_inscription.pdf \
             documents/poule_*.pdf
 
@@ -177,7 +177,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
-          activate-environment: petanque
+          activate-environment: pboule
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -188,10 +188,10 @@ jobs:
       - name: Générer le site de documentation
         shell: bash -el {0}
         run: |
-          python scripts/generate_pages.py \
+          python python/generate_pages.py \
             --docs-dir    documents \
             --output-dir  pages \
-            --petanque-md PETANQUE.md \
+            --pboule-md PBOULE.md \
             --changelog   CHANGELOG.md
 
       - name: Configurer GitHub Pages

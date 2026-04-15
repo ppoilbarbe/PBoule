@@ -1,4 +1,4 @@
-name: petanque
+name: pboule
 
 channels:
   - conda-forge
@@ -8,8 +8,6 @@ dependencies:
   - pandoc
   - tectonic
   - reportlab
-  - svglib
-  - cairosvg
   - pyyaml
   - ruff
   - pre-commit

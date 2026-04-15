@@ -5,8 +5,7 @@
     "aspect_ratio": 2.102539
   },
   "logo_petanque": {
-    "path": "logo_petanque.svg",
-    "aspect_ratio": 1.795455,
-    "png_path": "logo_petanque_rend.png"
+    "path": "logo_petanque.png",
+    "aspect_ratio": 1.634586
   }
 }

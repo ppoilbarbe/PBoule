@@ -1,4 +1,4 @@
-# Makefile — Compétition de Pétanque
+# Makefile — PBoule
 # Pilote la génération de tous les documents de la compétition.
 
 # =============================================================================
@@ -16,25 +16,24 @@ POOL_BASE     := 4    # Taille de base des poules (nombre d'équipes par poule)
                       #   avec POOL_BASE=4) génèrent une feuille "Poule UNIQUE".
 
 LOGO_MAIN     := logo_COF_montlaur_rose.png  # Logo principal (COF Montlaur)
-LOGO_PETANQUE := logo_petanque.svg           # Logo pétanque (boules)
+LOGO_PETANQUE := logo_petanque.png           # Logo pétanque (boules)
 LOGO_H        := 3.5                         # Hauteur des logos en cm
 LOGO_YAML     := logo.yaml                   # Cache des caractéristiques des logos
-LOGO_PET_PNG  := logo_petanque_rend.png      # PNG rasterisé du SVG pétanque (pour pandoc/LaTeX)
 
 # =============================================================================
 # Configuration technique  (ne pas modifier sauf raison spécifique)
 # =============================================================================
 
-PYTHON        := conda run -n petanque python
-PANDOC        := conda run -n petanque pandoc
+PYTHON        := conda run -n pboule python
+PANDOC        := conda run -n pboule pandoc
 PANDOC_FLAGS  := --pdf-engine=tectonic -V lang=fr -V papersize=a4 \
                  -V geometry:margin=1cm
 DOCS_DIR      := documents
 PAGES_DIR     := pages
-ENV_NAME      := petanque
+ENV_NAME      := pboule
 PYTHON_DIR    := python
 
-PETANQUE_PDF  := $(DOCS_DIR)/petanque.pdf
+PBOULE_PDF    := $(DOCS_DIR)/pboule.pdf
 
 .DEFAULT_GOAL := help
 
@@ -45,8 +44,8 @@ PETANQUE_PDF  := $(DOCS_DIR)/petanque.pdf
 .PHONY: help
 help: ## Affiche cette aide
 	@echo ""
-	@echo "  Compétition de Pétanque — Makefile"
-	@echo "  ===================================="
+	@echo "  PBoule — Makefile"
+	@echo "  =================="
 	@echo ""
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) \
 	    | awk -F ':.*##' '{ printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' \
@@ -71,10 +70,7 @@ init: ## Crée le dossier de sortie
 # Logos — cache des caractéristiques (ratio d'aspect, chemin, hauteur)
 # ---------------------------------------------------------------------------
 
-# Cible groupée (GNU Make 4.3+) : logo.yaml ET logo_petanque_rend.png sont
-# produits par la même commande. Si l'un ou l'autre est absent ou périmé
-# (logo source modifié), la recette se réexécute et régénère les deux.
-$(LOGO_YAML) $(LOGO_PET_PNG) &: $(wildcard $(LOGO_MAIN) $(LOGO_PETANQUE))
+$(LOGO_YAML): $(wildcard $(LOGO_MAIN) $(LOGO_PETANQUE))
 	@echo "Calcul des caractéristiques des logos…"
 	@$(PYTHON) $(PYTHON_DIR)/compute_logo_yaml.py \
 	    --logo-main     $(LOGO_MAIN) \
@@ -83,23 +79,23 @@ $(LOGO_YAML) $(LOGO_PET_PNG) &: $(wildcard $(LOGO_MAIN) $(LOGO_PETANQUE))
 	    --output        $(LOGO_YAML)
 
 .PHONY: logo
-logo: $(LOGO_YAML) $(LOGO_PET_PNG) ## Calcule les caractéristiques des logos → logo.yaml + logo_petanque_rend.png
+logo: $(LOGO_YAML) ## Calcule les caractéristiques des logos → logo.yaml
 
 # ---------------------------------------------------------------------------
 # Génération des documents
 # ---------------------------------------------------------------------------
 
 .PHONY: all
-all: petanque-pdf feuilles-poules feuille-inscription ## Génère tous les documents
+all: pboule-pdf feuilles-poules feuille-inscription ## Génère tous les documents
 
-# documents/petanque.pdf — transcription PDF de PETANQUE.md
-$(PETANQUE_PDF): PETANQUE.md $(LOGO_YAML) $(LOGO_PET_PNG) | init
+# documents/pboule.pdf — transcription PDF de PBOULE.md
+$(PBOULE_PDF): PBOULE.md $(LOGO_YAML) | init
 	@echo "Génération de $@…"
 	@$(PANDOC) $< -o $@ $(PANDOC_FLAGS)
 	@echo "  → $@ généré."
 
-.PHONY: petanque-pdf
-petanque-pdf: $(PETANQUE_PDF) ## Génère documents/petanque.pdf depuis PETANQUE.md
+.PHONY: pboule-pdf
+pboule-pdf: $(PBOULE_PDF) ## Génère documents/pboule.pdf depuis PBOULE.md
 
 # ---------------------------------------------------------------------------
 # Feuilles de poule
@@ -139,7 +135,7 @@ clean: ## Supprime les documents générés, les pages et les fichiers temporair
 	@echo "Nettoyage terminé."
 
 .PHONY: clean-all
-clean-all: clean ## Supprime les documents générés ET l'environnement conda 'petanque'
+clean-all: clean ## Supprime les documents générés ET l'environnement conda 'pboule'
 	@if conda env list | grep -qE "^$(ENV_NAME)\s"; then \
 	    echo "Suppression de l'environnement conda '$(ENV_NAME)'…"; \
 	    conda env remove -n $(ENV_NAME) -y; \
@@ -153,7 +149,7 @@ clean-all: clean ## Supprime les documents générés ET l'environnement conda '
 # ---------------------------------------------------------------------------
 
 .PHONY: env
-env: environment.yml ## Crée ou met à jour l'environnement conda 'petanque'
+env: environment.yml ## Crée ou met à jour l'environnement conda 'pboule'
 	@if conda env list | grep -qE "^$(ENV_NAME)\s"; then \
 	    echo "Mise à jour de l'environnement conda '$(ENV_NAME)'…"; \
 	    conda env update -n $(ENV_NAME) -f environment.yml --prune; \
@@ -168,7 +164,7 @@ env: environment.yml ## Crée ou met à jour l'environnement conda 'petanque'
 # ---------------------------------------------------------------------------
 
 .PHONY: check
-check: ## Vérifie que l'environnement conda 'petanque' est disponible
+check: ## Vérifie que l'environnement conda 'pboule' est disponible
 	@conda run -n $(ENV_NAME) python --version \
 	    && echo "Environnement conda '$(ENV_NAME)' : OK" \
 	    || echo "ERREUR : environnement conda '$(ENV_NAME)' introuvable"
@@ -180,9 +176,9 @@ check: ## Vérifie que l'environnement conda 'petanque' est disponible
 .PHONY: lint
 lint: ## Analyse le code Python avec ruff (lint + formatage)
 	@echo "Analyse ruff — vérification du formatage…"
-	@$(PYTHON) -m ruff format --check $(PYTHON_DIR)/ scripts/
+	@$(PYTHON) -m ruff format --check $(PYTHON_DIR)/
 	@echo "Analyse ruff — lint…"
-	@$(PYTHON) -m ruff check $(PYTHON_DIR)/ scripts/
+	@$(PYTHON) -m ruff check $(PYTHON_DIR)/
 	@echo "Analyse ruff : OK"
 
 .PHONY: install-hooks
@@ -197,8 +193,10 @@ install-hooks: ## Installe les hooks pre-commit dans le dépôt git local
 .PHONY: pages
 pages: feuilles-poules feuille-inscription ## Génère le site statique dans pages/
 	@echo "Génération du site de documentation…"
-	@$(PYTHON) scripts/generate_pages.py \
-	    --docs-dir    $(DOCS_DIR) \
-	    --output-dir  $(PAGES_DIR) \
-	    --petanque-md PETANQUE.md \
-	    --changelog   CHANGELOG.md
+	@$(PYTHON) $(PYTHON_DIR)/generate_pages.py \
+	    --docs-dir         $(DOCS_DIR) \
+	    --output-dir       $(PAGES_DIR) \
+	    --pboule-md        PBOULE.md \
+	    --changelog        CHANGELOG.md \
+	    --logo-creation-md creation_logo_petanque.md \
+	    --logo-yaml        $(LOGO_YAML)

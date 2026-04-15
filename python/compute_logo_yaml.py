@@ -9,7 +9,7 @@ une seule fois et mémorise les ratios d'aspect, ce qui évite de les recalculer
 Usage :
     python python/compute_logo_yaml.py \\
         --logo-main     logo_COF_montlaur_rose.png \\
-        --logo-petanque logo_petanque.svg \\
+        --logo-petanque logo_petanque.png \\
         --logo-height   3.5 \\
         --output        logo.yaml
 """
@@ -19,24 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import struct
-import xml.etree.ElementTree as ET
 from pathlib import Path
-
-
-def _svg_aspect(path: Path) -> float | None:
-    """Retourne le ratio largeur/hauteur du viewBox d'un fichier SVG."""
-    try:
-        root = ET.parse(str(path)).getroot()
-        vb = root.get("viewBox")
-        if not vb:
-            return None
-        parts = vb.replace(",", " ").split()
-        if len(parts) != 4:
-            return None
-        w, h = float(parts[2]), float(parts[3])
-        return w / h if h > 0 else None
-    except Exception:
-        return None
 
 
 def _png_aspect(path: Path) -> float | None:
@@ -65,7 +48,7 @@ def main() -> None:
         type=Path,
         default=None,
         metavar="FILE",
-        help="Chemin vers le logo pétanque SVG (optionnel)",
+        help="Chemin vers le logo pétanque PNG (optionnel)",
     )
     ap.add_argument(
         "--logo-height",
@@ -99,32 +82,14 @@ def main() -> None:
         if args.logo_main:
             print(f"  logo_main     : {args.logo_main}  (introuvable, ignoré)")
 
-    # ── Logo pétanque (SVG) ──────────────────────────────────────────────────
+    # ── Logo pétanque (PNG) ──────────────────────────────────────────────────
     if args.logo_petanque and args.logo_petanque.exists():
-        ratio = _svg_aspect(args.logo_petanque)
-        pet_entry: dict = {
+        ratio = _png_aspect(args.logo_petanque)
+        data["logo_petanque"] = {
             "path": str(args.logo_petanque),
             "aspect_ratio": round(ratio, 6) if ratio is not None else None,
         }
         status = f"ratio={ratio:.4f}" if ratio else "ratio=indéterminé"
-
-        # Générer un PNG rasterisé du SVG (pour usage dans les documents pandoc/LaTeX)
-        try:
-            import cairosvg
-
-            dpi = 150
-            h_px = int(args.logo_height / 2.54 * dpi)
-            png_data = cairosvg.svg2png(url=str(args.logo_petanque), output_height=h_px)
-            png_path = args.logo_petanque.with_name(
-                args.logo_petanque.stem + "_rend.png"
-            )
-            png_path.write_bytes(png_data)
-            pet_entry["png_path"] = str(png_path)
-            status += f", PNG → {png_path.name}"
-        except Exception as e:
-            status += f", PNG ignoré ({e})"
-
-        data["logo_petanque"] = pet_entry
         print(f"  logo_petanque : {args.logo_petanque}  ({status})")
     else:
         data["logo_petanque"] = None

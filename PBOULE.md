@@ -5,9 +5,8 @@ header-includes:
 
 ```{=latex}
 \noindent\hfill%
-\raisebox{0.33cm}{\includegraphics[height=0.5cm]{logo_petanque_rend.png}}%
-\hspace{0.2cm}%
-\includegraphics[height=1.5cm]{logo_COF_montlaur_rose.png}%
+\rlap{\includegraphics[height=1.167cm]{logo_petanque.png}}%
+\includegraphics[height=3.5cm]{logo_COF_montlaur_rose.png}%
 \par\vspace{0.3cm}
 ```
 
@@ -59,9 +58,11 @@ Deux logos sont utilisés sur tous les documents imprimés.
 | Fichier | Rôle | Format |
 |---|---|---|
 | `logo_COF_montlaur_rose.png` | Logo principal — Comité des fêtes de Montlaur | PNG |
-| `logo_petanque.svg` | Logo secondaire — scène de boules réaliste | SVG |
+| `logo_petanque.png` | Logo secondaire — scène de boules réaliste | PNG |
 
-**Disposition** : logo principal calé en haut à droite ; logo secondaire superposé en bas à gauche du logo principal, affiché à 1/3 de la taille du logo principal (hauteur et largeur divisées par 3, ratio conservé). Première page uniquement pour les documents multi-pages.
+**Disposition — Documents PDF** : logo principal calé en haut à droite ; logo secondaire superposé en bas à gauche du logo principal, affiché à 1/3 de la taille du logo principal (hauteur et largeur divisées par 3, ratio conservé). Première page uniquement pour les documents multi-pages.
+
+**Disposition — Site de documentation (`index.html`)** : les logos sont affichés à droite de la page, au même niveau que la table des matières (conteneur flex : TOC à gauche, logos à droite). Logo principal à hauteur `LOGO_H` ; logo secondaire superposé en bas à gauche du logo principal, à 1/3 de la taille du logo principal (mêmes règles qu'en PDF).
 
 **Hauteur d'affichage** : paramètre `LOGO_H` dans le Makefile (défaut 3,5 cm).
 
@@ -70,9 +71,8 @@ Deux logos sont utilisés sur tous les documents imprimés.
 | Fichier | Origine | Fonction |
 |---|---|---|
 | `logo.yaml` | `make logo` | Cache JSON des chemins et ratios d'aspect des logos. Évite de relire les fichiers image à chaque génération de document. Persistant : non supprimé par `make clean`. |
-| `logo_petanque_rend.png` | `make logo` | Rasterisation PNG du SVG pétanque (cairosvg, 150 dpi). Nécessaire pour `petanque.pdf` (pandoc → LaTeX ne sait pas inclure les SVG sans paquet supplémentaire). Persistant : non supprimé par `make clean`. |
 
-Les deux fichiers sont produits par la même commande (`compute_logo_yaml.py`) via une **cible groupée** Makefile : si l'un ou l'autre est absent ou périmé, les deux sont régénérés ensemble.
+Ce fichier est produit par la commande `compute_logo_yaml.py` : si absent ou périmé, il est régénéré par `make logo`.
 
 ### Couleurs des poules
 
@@ -94,6 +94,11 @@ Les noms des poules sont des **lettres** (A, B, C…) ; les couleurs n'ont qu'un
 
 ---
 
+## Structure des fichiers source
+
+Tous les scripts Python du projet sont placés dans le dossier **`python/`**, sans exception.
+Le dossier `scripts/` n'est pas utilisé pour du code Python.
+
 ## Structure des fichiers produits
 
 - Dossier de sortie unique : `documents/`
@@ -108,7 +113,7 @@ Les noms des poules sont des **lettres** (A, B, C…) ; les couleurs n'ont qu'un
 | Fichier | Description | Cible Makefile |
 |---|---|---|
 | `feuille_inscription.pdf` | Feuille d'inscription des équipes | `feuille-inscription` |
-| `petanque.pdf` | Transcription PDF de ce fichier | `petanque-pdf` |
+| `pboule.pdf` | Transcription PDF de ce fichier | `pboule-pdf` |
 | `poule_A_04eq.pdf` … `poule_H_04eq.pdf` | Gabarits poules A–H, `POOL_BASE` équipes | `feuilles-poules` |
 | `poule_A_05eq.pdf` … `poule_H_05eq.pdf` | Gabarits poules A–H, `POOL_BASE+1` équipes | `feuilles-poules` |
 | `poule_unique_{N:02d}eq.pdf` | Poule UNIQUE pour chaque N non décomposable (ex. 6, 7, 11 avec `POOL_BASE=4`) | `feuilles-poules` |
@@ -124,30 +129,30 @@ Les noms des poules sont des **lettres** (A, B, C…) ; les couleurs n'ont qu'un
 | Cible | Description | Dépendances |
 |---|---|---|
 | `help` | Affiche la liste des cibles disponibles et les paramètres actifs | — |
-| `all` | Génère tous les documents | `petanque-pdf`, `feuilles-poules`, `feuille-inscription` |
-| `logo` | Calcule les caractéristiques des logos → `logo.yaml` + `logo_petanque_rend.png` | fichiers logos (si présents) |
+| `all` | Génère tous les documents | `pboule-pdf`, `feuilles-poules`, `feuille-inscription` |
+| `logo` | Calcule les caractéristiques des logos → `logo.yaml` | fichiers logos (si présents) |
 | `feuilles-poules` | Génère tous les gabarits de feuilles de poule dans `documents/` | `logo` |
 | `feuille-inscription` | Génère la feuille d'inscription dans `documents/` | `logo` |
-| `petanque-pdf` | Convertit `PETANQUE.md` en `documents/petanque.pdf` via pandoc + tectonic | `logo` |
+| `pboule-pdf` | Convertit `PBOULE.md` en `documents/pboule.pdf` via pandoc + tectonic | `logo` |
 | `init` | Crée le dossier `documents/` s'il n'existe pas | — |
 | `clean` | Supprime `documents/` et les caches Python (`__pycache__`, `*.pyc`) | — |
-| `clean-all` | `clean` + suppression de l'environnement conda `petanque` | `clean` |
+| `clean-all` | `clean` + suppression de l'environnement conda `pboule` | `clean` |
 | `env` | Crée ou met à jour l'environnement conda depuis `environment.yml` | `environment.yml` |
-| `check` | Vérifie que l'environnement conda `petanque` est disponible | — |
+| `check` | Vérifie que l'environnement conda `pboule` est disponible | — |
 | `lint` | Analyse le code Python avec ruff (lint + formatage) | — |
 | `install-hooks` | Installe les hooks pre-commit dans le dépôt git local | — |
 | `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `feuilles-poules`, `feuille-inscription` |
 
-**Ordre de première utilisation** (dépôt cloné, sans `logo.yaml` ni `logo_petanque_rend.png`) :
+**Ordre de première utilisation** (dépôt cloné, sans `logo.yaml`) :
 
 ```
 make env            # créer l'environnement conda
 make install-hooks  # installer les hooks pre-commit (optionnel)
-make logo           # générer logo.yaml et logo_petanque_rend.png
+make logo           # générer logo.yaml
 make all            # générer tous les documents
 ```
 
-`make all` déclenche automatiquement `make logo` si les fichiers de configuration sont absents.
+`make all` déclenche automatiquement `make logo` si `logo.yaml` est absent.
 
 ---
 
@@ -158,14 +163,14 @@ Le fichier `.github/workflows/ci.yml` définit quatre jobs :
 | Job | Déclencheur | Dépendances | Description |
 |---|---|---|---|
 | `lint` | push, PR | — | Analyse ruff via pre-commit (lint + formatage) |
-| `generate` | push, PR | `lint` | Génère tous les PDF (hors `petanque-pdf`) et les archive |
+| `generate` | push, PR | `lint` | Génère tous les PDF (hors `pboule-pdf`) et les archive |
 | `release` | tag `vX.Y.Z` | `generate` | Crée une GitHub Release avec les PDF et une archive ZIP |
 | `pages` | tag `vX.Y.Z` | `generate` | Génère et publie le site de documentation sur GitHub Pages |
 
 ### Workflow de release
 
 Avant tout tag/release, mettre à jour `CHANGELOG.md` avec une section `## [X.Y.Z] – YYYY-MM-DD`.
-Le job `release` extrait automatiquement les notes depuis ce fichier via `scripts/extract_changelog.py`.
+Le job `release` extrait automatiquement les notes depuis ce fichier via `python/extract_changelog.py`.
 
 ```
 # 1. Mettre à jour CHANGELOG.md
