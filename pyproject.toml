@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 # ---------------------------------------------------------------------------
 [project]
 name = "pboule"
-version = "0.1.1"
+version = "0.2.1"
 description = "Générateur de documents pour compétitions de pétanque"
 authors = [{ name = "Philippe Poilbarbe" }]
 license = { text = "MIT" }
@@ -38,7 +38,7 @@ dev = [
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-src = ["python", "scripts"]
+src = ["python"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "UP", "C4", "PIE", "SIM"]

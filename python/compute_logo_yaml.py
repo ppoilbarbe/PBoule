@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import struct
+import sys
 from pathlib import Path
 
 
@@ -46,9 +47,9 @@ def main() -> None:
     ap.add_argument(
         "--logo-petanque",
         type=Path,
-        default=None,
+        required=True,
         metavar="FILE",
-        help="Chemin vers le logo pétanque PNG (optionnel)",
+        help="Chemin vers le logo pétanque PNG (obligatoire)",
     )
     ap.add_argument(
         "--logo-height",
@@ -82,19 +83,16 @@ def main() -> None:
         if args.logo_main:
             print(f"  logo_main     : {args.logo_main}  (introuvable, ignoré)")
 
-    # ── Logo pétanque (PNG) ──────────────────────────────────────────────────
-    if args.logo_petanque and args.logo_petanque.exists():
-        ratio = _png_aspect(args.logo_petanque)
-        data["logo_petanque"] = {
-            "path": str(args.logo_petanque),
-            "aspect_ratio": round(ratio, 6) if ratio is not None else None,
-        }
-        status = f"ratio={ratio:.4f}" if ratio else "ratio=indéterminé"
-        print(f"  logo_petanque : {args.logo_petanque}  ({status})")
-    else:
-        data["logo_petanque"] = None
-        if args.logo_petanque:
-            print(f"  logo_petanque : {args.logo_petanque}  (introuvable, ignoré)")
+    # ── Logo pétanque (PNG) — obligatoire ────────────────────────────────────
+    if not args.logo_petanque.exists():
+        sys.exit(f"Erreur : logo pétanque introuvable : {args.logo_petanque}")
+    ratio = _png_aspect(args.logo_petanque)
+    data["logo_petanque"] = {
+        "path": str(args.logo_petanque),
+        "aspect_ratio": round(ratio, 6) if ratio is not None else None,
+    }
+    status = f"ratio={ratio:.4f}" if ratio else "ratio=indéterminé"
+    print(f"  logo_petanque : {args.logo_petanque}  ({status})")
 
     # ── Écriture du fichier YAML (format JSON, compatible YAML) ─────────────
     args.output.parent.mkdir(parents=True, exist_ok=True)

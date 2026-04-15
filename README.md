@@ -84,19 +84,70 @@ passées en ligne de commande ne sont pas mémorisées. Il faut les répéter à
 chaque invocation de `make` pour conserver une cohérence entre les documents
 générés.
 
-### Cibles Makefile disponibles
+### Cibles Makefile
 
+| Cible | Description | Dépendances |
+|---|---|---|
+| `help` | Affiche la liste des cibles disponibles et les paramètres actifs | — |
+| `all` | Génère tous les documents | `pboule-pdf`, `feuilles-poules`, `feuille-inscription` |
+| `logo` | Calcule les caractéristiques des logos → `logo.yaml` | fichiers logos |
+| `feuilles-poules` | Génère tous les gabarits de feuilles de poule dans `documents/` | `logo` |
+| `feuille-inscription` | Génère la feuille d'inscription dans `documents/` | `logo` |
+| `pboule-pdf` | Convertit `PBOULE.md` en `documents/pboule.pdf` via pandoc + tectonic | `logo` |
+| `init` | Crée le dossier `documents/` s'il n'existe pas | — |
+| `clean` | Supprime `documents/` et les caches Python | — |
+| `clean-all` | `clean` + suppression de l'environnement conda `pboule` | `clean` |
+| `env` | Crée ou met à jour l'environnement conda depuis `environment.yml` | — |
+| `check` | Vérifie que l'environnement conda `pboule` est disponible | — |
+| `lint` | Analyse le code Python avec ruff (lint + formatage) | — |
+| `bump-major` | Incrémente la version majeure (`X.Y.Z → (X+1).0.0`) | — |
+| `bump-minor` | Incrémente la version mineure (`X.Y.Z → X.(Y+1).0`) | — |
+| `bump-patch` | Incrémente la version patch (`X.Y.Z → X.Y.(Z+1)`) | — |
+| `install-hooks` | Installe les hooks pre-commit dans le dépôt git local | — |
+| `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `feuilles-poules`, `feuille-inscription` |
+
+---
+
+## Pipeline CI/CD
+
+Le fichier `.github/workflows/ci.yml` définit quatre jobs :
+
+| Job | Déclencheur | Dépendances | Description |
+|---|---|---|---|
+| `lint` | push, PR | — | Analyse ruff via pre-commit (lint + formatage) |
+| `generate` | push, PR | `lint` | Génère tous les PDF (hors `pboule-pdf`) et les archive |
+| `release` | tag `vX.Y.Z` | `generate` | Crée une GitHub Release avec les PDF et une archive ZIP |
+| `pages` | tag `vX.Y.Z` | `generate` | Génère et publie le site de documentation sur GitHub Pages |
+
+### Workflow de release
+
+Avant tout tag/release, mettre à jour `CHANGELOG.md` avec une section `## [X.Y.Z] – YYYY-MM-DD`
+(via `make bump-minor` ou `make bump-patch`), compléter les notes, puis commiter et pousser.
+
+```bash
+make bump-patch           # incrémente la version et ajoute un placeholder dans CHANGELOG.md
+# … compléter la section générée dans CHANGELOG.md …
+git add CHANGELOG.md pyproject.toml
+git commit -m "..."
+git push origin main
+git tag v0.3.0
+git push origin v0.3.0
 ```
-make help           # liste toutes les cibles et les paramètres actifs
-make all            # génère tous les documents
-make feuilles-poules      # feuilles de poule uniquement
-make feuille-inscription  # feuille d'inscription uniquement
-make logo           # recalcule logo.yaml (après changement de logo)
-make pages          # génère le site de documentation dans pages/
-make lint           # vérifie le code Python (ruff)
-make clean          # supprime les documents générés
-make clean-all      # clean + supprime l'environnement conda
-```
+
+Le pipeline CI publie alors :
+- **GitHub Release** — archive ZIP + PDF individuels (feuilles de poule, feuille d'inscription)
+- **GitHub Pages** — site de documentation statique avec les spécifications, les liens vers les PDF et le changelog
+
+### Site GitHub Pages (`pages/`)
+
+| Fichier | Description |
+|---|---|
+| `index.html` | Site complet (spécifications + documents + changelog) |
+| `style.css` | Feuille de style |
+| `feuille_inscription.pdf` | Copie des PDF (téléchargement direct) |
+| `poule_*.pdf` | Copie des PDF (téléchargement direct) |
+
+Le dossier `pages/` n'est pas versionné (dans `.gitignore`) et est supprimé par `make clean`.
 
 ---
 

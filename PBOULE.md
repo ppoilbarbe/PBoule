@@ -94,105 +94,19 @@ Les noms des poules sont des **lettres** (A, B, C…) ; les couleurs n'ont qu'un
 
 ---
 
-## Structure des fichiers source
-
-Tous les scripts Python du projet sont placés dans le dossier **`python/`**, sans exception.
-Le dossier `scripts/` n'est pas utilisé pour du code Python.
-
-## Structure des fichiers produits
-
-- Dossier de sortie unique : `documents/`
-- Pas de sous-dossiers — tous les fichiers sont directement dans `documents/`
-- Le nommage encode le contexte ; trié par nom, les fichiers se groupent logiquement
-- La création des documents est pilotée par le `Makefile` à la racine du projet
-
----
-
 ## Documents produits
 
-| Fichier | Description | Cible Makefile |
-|---|---|---|
-| `feuille_inscription.pdf` | Feuille d'inscription des équipes | `feuille-inscription` |
-| `pboule.pdf` | Transcription PDF de ce fichier | `pboule-pdf` |
-| `poule_A_04eq.pdf` … `poule_H_04eq.pdf` | Gabarits poules A–H, `POOL_BASE` équipes | `feuilles-poules` |
-| `poule_A_05eq.pdf` … `poule_H_05eq.pdf` | Gabarits poules A–H, `POOL_BASE+1` équipes | `feuilles-poules` |
-| `poule_unique_{N:02d}eq.pdf` | Poule UNIQUE pour chaque N non décomposable (ex. 6, 7, 11 avec `POOL_BASE=4`) | `feuilles-poules` |
+| Fichier | Description |
+|---|---|
+| `feuille_inscription.pdf` | Feuille d'inscription des équipes |
+| `pboule.pdf` | Transcription PDF de ce fichier |
+| `poule_A_04eq.pdf` … `poule_H_04eq.pdf` | Gabarits poules A–H, `POOL_BASE` équipes |
+| `poule_A_05eq.pdf` … `poule_H_05eq.pdf` | Gabarits poules A–H, `POOL_BASE+1` équipes |
+| `poule_unique_{N:02d}eq.pdf` | Poule UNIQUE pour chaque N non décomposable (ex. 6, 7, 11 avec `POOL_BASE=4`) |
 
 **Convention de nommage des feuilles de poule :**
 - Standard : `poule_{lettre}_{taille:02d}eq.pdf`
 - Unique : `poule_unique_{N:02d}eq.pdf`
-
----
-
-## Cibles Makefile
-
-| Cible | Description | Dépendances |
-|---|---|---|
-| `help` | Affiche la liste des cibles disponibles et les paramètres actifs | — |
-| `all` | Génère tous les documents | `pboule-pdf`, `feuilles-poules`, `feuille-inscription` |
-| `logo` | Calcule les caractéristiques des logos → `logo.yaml` | fichiers logos (si présents) |
-| `feuilles-poules` | Génère tous les gabarits de feuilles de poule dans `documents/` | `logo` |
-| `feuille-inscription` | Génère la feuille d'inscription dans `documents/` | `logo` |
-| `pboule-pdf` | Convertit `PBOULE.md` en `documents/pboule.pdf` via pandoc + tectonic | `logo` |
-| `init` | Crée le dossier `documents/` s'il n'existe pas | — |
-| `clean` | Supprime `documents/` et les caches Python (`__pycache__`, `*.pyc`) | — |
-| `clean-all` | `clean` + suppression de l'environnement conda `pboule` | `clean` |
-| `env` | Crée ou met à jour l'environnement conda depuis `environment.yml` | `environment.yml` |
-| `check` | Vérifie que l'environnement conda `pboule` est disponible | — |
-| `lint` | Analyse le code Python avec ruff (lint + formatage) | — |
-| `install-hooks` | Installe les hooks pre-commit dans le dépôt git local | — |
-| `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `feuilles-poules`, `feuille-inscription` |
-
-**Ordre de première utilisation** (dépôt cloné, sans `logo.yaml`) :
-
-```
-make env            # créer l'environnement conda
-make install-hooks  # installer les hooks pre-commit (optionnel)
-make logo           # générer logo.yaml
-make all            # générer tous les documents
-```
-
-`make all` déclenche automatiquement `make logo` si `logo.yaml` est absent.
-
----
-
-## Pipeline CI / CD
-
-Le fichier `.github/workflows/ci.yml` définit quatre jobs :
-
-| Job | Déclencheur | Dépendances | Description |
-|---|---|---|---|
-| `lint` | push, PR | — | Analyse ruff via pre-commit (lint + formatage) |
-| `generate` | push, PR | `lint` | Génère tous les PDF (hors `pboule-pdf`) et les archive |
-| `release` | tag `vX.Y.Z` | `generate` | Crée une GitHub Release avec les PDF et une archive ZIP |
-| `pages` | tag `vX.Y.Z` | `generate` | Génère et publie le site de documentation sur GitHub Pages |
-
-### Workflow de release
-
-Avant tout tag/release, mettre à jour `CHANGELOG.md` avec une section `## [X.Y.Z] – YYYY-MM-DD`.
-Le job `release` extrait automatiquement les notes depuis ce fichier via `python/extract_changelog.py`.
-
-```
-# 1. Mettre à jour CHANGELOG.md
-# 2. Commiter et pousser sur main
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-Le pipeline CI publie alors :
-- **GitHub Release** — archive ZIP + PDF individuels (feuilles de poule, feuille d'inscription)
-- **GitHub Pages** — site de documentation statique (`index.html`) contenant les spécifications, les liens vers tous les PDF et le changelog
-
-### Structure du site GitHub Pages (`pages/`)
-
-| Fichier | Description |
-|---|---|
-| `index.html` | Site complet (spécifications + documents + changelog) |
-| `style.css` | Feuille de style |
-| `feuille_inscription.pdf` | Copie des PDF (téléchargement direct) |
-| `poule_*.pdf` | Copie des PDF (téléchargement direct) |
-
-Le dossier `pages/` n'est pas versionné (dans `.gitignore`) et est supprimé par `make clean`.
 
 ---
 

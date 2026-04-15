@@ -181,6 +181,21 @@ lint: ## Analyse le code Python avec ruff (lint + formatage)
 	@$(PYTHON) -m ruff check $(PYTHON_DIR)/
 	@echo "Analyse ruff : OK"
 
+# ---------------------------------------------------------------------------
+# Gestion des versions
+# ---------------------------------------------------------------------------
+
+.PHONY: bump-major bump-minor bump-patch
+
+bump-major: ## Incrémente la version majeure : X.Y.Z → (X+1).0.0
+	@$(PYTHON) $(PYTHON_DIR)/bump_version.py major
+
+bump-minor: ## Incrémente la version mineure : X.Y.Z → X.(Y+1).0
+	@$(PYTHON) $(PYTHON_DIR)/bump_version.py minor
+
+bump-patch: ## Incrémente la version patch  : X.Y.Z → X.Y.(Z+1)
+	@$(PYTHON) $(PYTHON_DIR)/bump_version.py patch
+
 .PHONY: install-hooks
 install-hooks: ## Installe les hooks pre-commit dans le dépôt git local
 	@conda run -n $(ENV_NAME) pre-commit install

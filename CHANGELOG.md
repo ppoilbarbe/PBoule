@@ -3,6 +3,34 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.2.1] – 2026-04-15
+
+### Added
+- **Makefile** : cibles `bump-major`, `bump-minor`, `bump-patch` pour
+  incrémenter la version dans `pyproject.toml` et préparer `CHANGELOG.md`.
+- **`python/bump_version.py`** : script sous-jacent aux cibles bump-*.
+- **`README.md`** : table complète des cibles Makefile (avec dépendances) et
+  section Pipeline CI/CD (jobs, workflow de release, structure `pages/`).
+
+### Changed
+- **`PBOULE.md`** : recentré sur les spécifications du domaine — sections
+  « Structure des fichiers », « Cibles Makefile » et « Pipeline CI/CD »
+  déplacées vers `README.md`. Correction de l'en-tête LaTeX pour `pboule.pdf`
+  (hauteurs et superposition des logos conformes à la spec).
+- **`CLAUDE.md`** : ajout de `README.md` dans les fichiers de référence à
+  maintenir ; règle canal conda (uniquement `conda-forge`, jamais `defaults`).
+- **`environment.yml`** : ajout de `nodefaults` dans les canaux.
+- **CI** : `conda-remove-defaults: "true"` sur les 4 jobs ; arguments
+  `--logo-yaml` et `--logo-creation-md` ajoutés au job `pages` (logos absents
+  de `index.html` sur GitHub Pages).
+
+### Fixed
+- **Logo secondaire** : rendu obligatoire dans `compute_logo_yaml.py`,
+  `logos.py` et `generate_pages.py` — erreur explicite si le fichier PNG est
+  absent (au lieu d'un fallback silencieux).
+- **`pyproject.toml`** : version portée à `0.2.0` (oubli lors de la v0.2.0) ;
+  `scripts/` retiré de `src` (dossier supprimé).
+
 ## [0.2.0] – 2026-04-15
 
 ### Changed

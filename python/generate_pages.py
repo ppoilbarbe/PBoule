@@ -147,6 +147,9 @@ def _build_logo_html(logo_data: dict) -> str:
     Disposition identique aux PDF :
       • logo principal en taille pleine
       • logo secondaire superposé en bas à gauche, à 1/3 de la hauteur
+
+    Le logo secondaire est obligatoire : ValueError si absent de logo_data,
+    FileNotFoundError si le fichier PNG est introuvable.
     """
     logo_h_cm = logo_data.get("logo_h_cm", 3.5)
     logo_h_px = round(logo_h_cm / 2.54 * _SCREEN_DPI)
@@ -155,8 +158,11 @@ def _build_logo_html(logo_data: dict) -> str:
     cof = logo_data.get("logo_main")
     pet = logo_data.get("logo_petanque")
 
-    if not cof and not pet:
-        return ""
+    if not pet or not pet.get("path"):
+        raise ValueError("logo_petanque manquant dans logo_data")
+    pet_path = Path(pet["path"])
+    if not pet_path.exists():
+        raise FileNotFoundError(f"Logo pétanque introuvable : {pet_path}")
 
     parts = ['<div class="logo-block"><div class="logo-inner">']
 
@@ -167,12 +173,11 @@ def _build_logo_html(logo_data: dict) -> str:
             f' style="height:{logo_h_px}px" alt="Logo COF Montlaur" />'
         )
 
-    if pet and pet.get("path"):
-        fname = Path(pet["path"]).name
-        parts.append(
-            f'<img src="{fname}" class="logo-secondary"'
-            f' style="height:{pet_h_px}px" alt="Logo pétanque" />'
-        )
+    fname = pet_path.name
+    parts.append(
+        f'<img src="{fname}" class="logo-secondary"'
+        f' style="height:{pet_h_px}px" alt="Logo pétanque" />'
+    )
 
     parts.append("</div></div>")
     return "\n".join(parts)

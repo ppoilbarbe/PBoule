@@ -1,10 +1,11 @@
 # Instructions générales
 
-Après chaque modification du projet, maintenir à jour les trois fichiers de référence :
+Après chaque modification du projet, maintenir à jour les fichiers de référence concernés :
 
 | Fichier | Rôle |
 |---|---|
-| **PBOULE.md** | Spécifications du domaine (règles, formats, algorithmes) |
+| **PBOULE.md** | Spécifications du domaine (règles, formats, algorithmes) — pas de contenu opérationnel |
+| **README.md** | Documentation utilisateur (cibles Makefile, structure du projet, pipeline CI/CD) — pas de spécifications |
 | **Makefile** | Cibles de génération et paramètres |
 | **CLAUDE.md** | Instructions de travail pour Claude |
 
@@ -46,6 +47,7 @@ Changed / Fixed). Le pipeline CI extrait les notes de release depuis ce fichier.
 ## Général
 * L'environnement conda par défaut est **pboule**. Toutes les commandes Python doivent être exécutées dans cet environnement.
 * Les scripts Python de génération sont dans le sous-répertoire **python/**.
+* Canal conda exclusivement **conda-forge** : ne jamais utiliser `defaults`. Toujours avoir `nodefaults` dans `environment.yml` et `conda-remove-defaults: "true"` dans chaque étape `setup-miniconda` du CI.
 
 ## Installation (environnement conda)
 

@@ -29,6 +29,7 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: pboule
+          conda-remove-defaults: "true"
 
       - name: Exécuter pre-commit (tous les fichiers)
         shell: bash -el {0}
@@ -53,6 +54,7 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: pboule
+          conda-remove-defaults: "true"
 
       - name: Calculer les caractéristiques des logos
         shell: bash -el {0}
@@ -116,6 +118,7 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: pboule
+          conda-remove-defaults: "true"
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -178,6 +181,7 @@ jobs:
         with:
           environment-file: environment.yml
           activate-environment: pboule
+          conda-remove-defaults: "true"
 
       - name: Télécharger les documents générés
         uses: actions/download-artifact@v7
@@ -189,10 +193,12 @@ jobs:
         shell: bash -el {0}
         run: |
           python python/generate_pages.py \
-            --docs-dir    documents \
-            --output-dir  pages \
-            --pboule-md PBOULE.md \
-            --changelog   CHANGELOG.md
+            --docs-dir         documents \
+            --output-dir       pages \
+            --pboule-md        PBOULE.md \
+            --changelog        CHANGELOG.md \
+            --logo-creation-md creation_logo_petanque.md \
+            --logo-yaml        logo.yaml
 
       - name: Configurer GitHub Pages
         uses: actions/configure-pages@v5

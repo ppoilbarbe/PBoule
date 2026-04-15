@@ -8,6 +8,8 @@ qui dessine deux logos en haut à droite de la page :
 
 logo_data est un dict chargé depuis logo.yaml (produit par compute_logo_yaml.py).
 Les ratios d'aspect sont pré-calculés ; seul le rendu image est effectué ici.
+
+Le logo pétanque est obligatoire : FileNotFoundError si le fichier est absent.
 """
 
 from __future__ import annotations
@@ -78,24 +80,17 @@ def draw_logos(
             except Exception:
                 pass
 
-    # ── Logo pétanque (PNG) ───────────────────────────────────────────────────
-    pet_img = None
-    pet_w = 0.0
-
+    # ── Logo pétanque (PNG) — obligatoire ────────────────────────────────────
     pet_info = logo_data.get("logo_petanque")
-    if pet_info and pet_info.get("path") and pet_info.get("aspect_ratio"):
-        path = Path(pet_info["path"])
-        if path.exists():
-            try:
-                pet_w = logo_h * pet_info["aspect_ratio"]
-                pet_img = _load_png(path)
-            except Exception:
-                pass
+    if not pet_info or not pet_info.get("path"):
+        raise ValueError("logo_petanque manquant dans logo_data")
+    pet_path = Path(pet_info["path"])
+    if not pet_path.exists():
+        raise FileNotFoundError(f"Logo pétanque introuvable : {pet_path}")
+    pet_w = logo_h * pet_info["aspect_ratio"]
+    pet_img = _load_png(pet_path)
 
     # ── Dessin ────────────────────────────────────────────────────────────────
-    if not cof_img and not pet_img:
-        return
-
     canvas.saveState()
     try:
         if cof_img:
@@ -112,30 +107,19 @@ def draw_logos(
             )
 
         if pet_img:
-            if cof_img:
-                # Logo pétanque superposé en bas à gauche du logo principal,
-                # à 1/3 de la hauteur du logo principal
-                pet_h_draw = logo_h / 3
-                pet_w_draw = pet_w / 3  # même facteur (ratio conservé)
-                pet_x = cof_x
-                pet_y = cof_y
-            else:
-                # Logo pétanque seul (pas de logo principal) : taille complète, a droite
-                pet_h_draw = logo_h
-                pet_w_draw = pet_w
-                pet_x = page_w - marge - pet_w
-                pet_y = page_h - marge - logo_h
+            # Logo pétanque superposé en bas à gauche du logo principal,
+            # à 1/3 de la hauteur du logo principal
+            pet_h_draw = logo_h / 3
+            pet_w_draw = pet_w / 3  # même facteur (ratio conservé)
             canvas.drawImage(
                 pet_img,
-                pet_x,
-                pet_y,
+                cof_x,
+                cof_y,
                 width=pet_w_draw,
                 height=pet_h_draw,
                 mask="auto",
                 preserveAspectRatio=True,
                 anchor="sw",
             )
-    except Exception:
-        pass
     finally:
         canvas.restoreState()
