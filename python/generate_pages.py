@@ -244,7 +244,7 @@ def _section_documents(docs_dir: Path) -> str:
         parts += [_pdf_link(p) for p in uniques]
         parts.append("")
 
-    # Feuilles de poule standard — groupées par taille
+    # Feuilles de poule standard — poule_{lettre}.pdf
     standards = sorted(
         p
         for p in pdfs
@@ -252,16 +252,15 @@ def _section_documents(docs_dir: Path) -> str:
     )
     if standards:
         parts += ["## Feuilles de poule", ""]
-        sizes: dict[str, list[Path]] = {}
-        for p in standards:
-            tokens = p.stem.split("_")  # ["poule", "A", "04eq"]
-            size = tokens[2] if len(tokens) >= 3 else "?"
-            sizes.setdefault(size, []).append(p)
-        for size, group in sorted(sizes.items()):
-            n = int(size.replace("eq", ""))
-            parts += [f"### {n} équipes", ""]
-            parts += [_pdf_link(p) for p in group]
-            parts.append("")
+        parts += [_pdf_link(p) for p in standards]
+        parts.append("")
+
+    # Phases finales
+    finales = sorted(p for p in pdfs if p.name.startswith("finales_"))
+    if finales:
+        parts += ["## Phases finales", ""]
+        parts += [_pdf_link(p) for p in finales]
+        parts.append("")
 
     return "\n".join(parts) + "\n"
 

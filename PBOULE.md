@@ -100,13 +100,8 @@ Les noms des poules sont des **lettres** (A, B, C…) ; les couleurs n'ont qu'un
 |---|---|
 | `feuille_inscription.pdf` | Feuille d'inscription des équipes |
 | `pboule.pdf` | Transcription PDF de ce fichier |
-| `poule_A_04eq.pdf` … `poule_H_04eq.pdf` | Gabarits poules A–H, `POOL_BASE` équipes |
-| `poule_A_05eq.pdf` … `poule_H_05eq.pdf` | Gabarits poules A–H, `POOL_BASE+1` équipes |
+| `poule_A.pdf` … `poule_H.pdf` | Gabarits poules A–H — 2 pages : `POOL_BASE` équipes + `POOL_BASE+1` équipes |
 | `poule_unique_{N:02d}eq.pdf` | Poule UNIQUE pour chaque N non décomposable (ex. 6, 7, 11 avec `POOL_BASE=4`) |
-
-**Convention de nommage des feuilles de poule :**
-- Standard : `poule_{lettre}_{taille:02d}eq.pdf`
-- Unique : `poule_unique_{N:02d}eq.pdf`
 
 ---
 
@@ -177,17 +172,32 @@ C(N, 2) lignes de matches pour N équipes dans la poule.
   2. Distribution uniforme en poules de `POOL_BASE` si N est divisible par `POOL_BASE`
   3. Distribution mixte : `x` poules de `POOL_BASE+1` + `y` poules de `POOL_BASE` telles que la somme vaut N, avec `x+y` minimal
 
-| N  | Répartition       | Poules |
-|----|-------------------|--------|
-| 8  | 2 × 4             | A–B    |
-| 9  | 1 × 5 + 1 × 4    | A–B    |
-| 12 | 3 × 4             | A–C    |
-| 16 | 4 × 4             | A–D    |
-| 20 | 4 × 5             | A–D    |
-| 24 | 6 × 4             | A–F    |
-| 25 | 5 × 5             | A–E    |
-| 28 | 7 × 4             | A–G    |
-| 32 | 8 × 4             | A–H    |
+| N  | Répartition           | Poules |
+|----|-----------------------|--------|
+| 8  | 2 × 4                 | A–B    |
+| 9  | 1 × 5 + 1 × 4        | A–B    |
+| 10 | 2 × 5                 | A–B    |
+| 12 | 3 × 4                 | A–C    |
+| 13 | 1 × 5 + 2 × 4        | A–C    |
+| 14 | 2 × 5 + 1 × 4        | A–C    |
+| 15 | 3 × 5                 | A–C    |
+| 16 | 4 × 4                 | A–D    |
+| 17 | 1 × 5 + 3 × 4        | A–D    |
+| 18 | 2 × 5 + 2 × 4        | A–D    |
+| 19 | 3 × 5 + 1 × 4        | A–D    |
+| 20 | 4 × 5                 | A–D    |
+| 21 | 1 × 5 + 4 × 4        | A–E    |
+| 22 | 2 × 5 + 3 × 4        | A–E    |
+| 23 | 3 × 5 + 2 × 4        | A–E    |
+| 24 | 6 × 4                 | A–F    |
+| 25 | 5 × 5                 | A–E    |
+| 26 | 2 × 5 + 4 × 4        | A–F    |
+| 27 | 3 × 5 + 3 × 4        | A–F    |
+| 28 | 7 × 4                 | A–G    |
+| 29 | 5 × 5 + 1 × 4        | A–F    |
+| 30 | 6 × 5                 | A–F    |
+| 31 | 3 × 5 + 4 × 4        | A–G    |
+| 32 | 8 × 4                 | A–H    |
 
 > **Cas particuliers (N = 6, 7, 11 avec POOL_BASE = 4) :** non décomposables
 > en poules de 4 ou 5. Une feuille **Poule UNIQUE de N équipes** est générée.
@@ -198,7 +208,65 @@ C(N, 2) lignes de matches pour N équipes dans la poule.
 
 ## Règles de la phase finale
 
-*(à compléter — format du tableau, gestion des têtes de série, match pour la 3e place, etc.)*
+### Équipes qualifiées
+
+Pour chaque poule, les **2 premiers** (1er et 2e) se qualifient pour la phase finale.
+Pour P poules, cela donne **2P qualifiés**.
+
+### Structure du tableau
+
+Tableau à **élimination directe** avec exactement 2P cases d'entrée.
+Si 2P n'est pas une puissance de 2, des **byes** (cases grises) complètent le tableau jusqu'à
+la puissance de 2 supérieure.
+
+Noms des tours selon le nombre d'équipes engagées :
+
+| Équipes dans le tour | Nom du tour       |
+|----------------------|-------------------|
+| 64                   | 32es de finale    |
+| 32                   | 16es de finale    |
+| 16                   | 8es de finale     |
+| 8                    | Quarts de finale  |
+| 4                    | Demi-finales      |
+| 2                    | Finale            |
+
+### Placement des équipes dans le tableau
+
+**Match i du tour 0 :**
+- Case haute : **1er de la poule i** (A1, B1, C1…)
+- Case basse : **2e de la poule (i + P//2) mod P** (espacement pour minimiser les rencontres
+  entre équipes de la même poule au premier tour)
+
+Exemple pour P = 4 (poules A–D) :
+
+| Match | Case haute | Case basse |
+|-------|-----------|-----------|
+| 1     | A1        | C2        |
+| 2     | B1        | D2        |
+| 3     | C1        | A2        |
+| 4     | D1        | B2        |
+
+→ A1 et A2 sont dans des moitiés de tableau opposées (ne peuvent se rencontrer qu'en finale).
+
+### Format de la feuille de phases finales
+
+- Format **A4 paysage** (ou 2 pages A4 portrait à assembler = A3 paysage si trop grand).
+- Logo en haut à droite sur la première page.
+- Colonnes = tours de gauche à droite, puis colonne « Gagnant ».
+- **Chaque case** comporte 3 sous-colonnes :
+  - **Résultat de poule** (ex. `A1`, `B2`) : pré-rempli, fond coloré de la couleur de la poule.
+  - **Nom** : vide, rempli à la main par les organisateurs.
+  - **Score** : vide, rempli à la main.
+- Les cases des tours suivants (non pré-remplies) n'ont que 2 sous-colonnes (Nom, Score).
+- **Match pour la 3e place** inclus (2 cases vides + case résultat).
+
+### Documents produits
+
+| Fichier                  | Description                              |
+|--------------------------|------------------------------------------|
+| `finales_{N:02d}eq.pdf`  | Feuille de phases finales pour N équipes |
+
+Un fichier est produit pour chaque N de `TEAMS_MIN` à `TEAMS_MAX` ayant au moins 2 poules.
 
 ---
 

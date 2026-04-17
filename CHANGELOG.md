@@ -3,6 +3,26 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.3.0] – 2026-04-17
+
+### Added
+- **`python/generate_phases_finales.py`** : nouveau script générant les feuilles de phases
+  finales (tableau à élimination directe, sans bye, avec matches préliminaires si nécessaire).
+  Un fichier par groupe de N équipes partageant le même nombre de poules P.
+  Page d'instructions incluse. Mode A3 automatique si les cases sont trop petites.
+- **Makefile** : cible `phases-finales` et dépendance dans `all` et `pages`.
+
+### Changed
+- **Feuilles de poule** : les deux tailles (`POOL_BASE` et `POOL_BASE+1` équipes) sont
+  désormais regroupées dans un seul PDF par lettre de poule (`poule_A.pdf`, `poule_B.pdf`…)
+  au lieu de deux fichiers séparés (`poule_A_04eq.pdf` / `poule_A_05eq.pdf`).
+- **`python/generate_pages.py`** : section « Feuilles de poule » adaptée au nouveau
+  nommage ; section « Phases finales » ajoutée.
+- **`PBOULE.md`** : table des documents mise à jour (nouveau nommage `poule_{lettre}.pdf`) ;
+  tableau de répartition en poules étendu à toutes les valeurs N de `TEAMS_MIN` à `TEAMS_MAX`
+  (24 lignes au lieu de 9) ; section « Règles de la phase finale » complétée ;
+  spécifications allégées (suppression des redondances).
+
 ## [0.2.1] – 2026-04-15
 
 ### Added

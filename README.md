@@ -19,6 +19,7 @@ avec phase de poules suivie d'une phase finale à élimination directe.
 | `feuille_inscription.pdf` | Tableau d'inscription des équipes (jusqu'à 32 équipes, A4 portrait) |
 | `poule_A_04eq.pdf` … `poule_H_05eq.pdf` | Feuilles de poule A4 paysage (4 ou 5 équipes par poule) |
 | `poule_unique_NNéq.pdf` | Feuille pour une poule unique (cas non décomposables : 6, 7, 11 équipes…) |
+| `finales_{NN}eq.pdf` | Feuille de phases finales pour NN équipes (tableau à élimination directe) |
 
 ---
 
@@ -104,6 +105,7 @@ générés.
 | `bump-minor` | Incrémente la version mineure (`X.Y.Z → X.(Y+1).0`) | — |
 | `bump-patch` | Incrémente la version patch (`X.Y.Z → X.Y.(Z+1)`) | — |
 | `install-hooks` | Installe les hooks pre-commit dans le dépôt git local | — |
+| `phases-finales` | Génère les feuilles de phases finales dans `documents/` | `logo` |
 | `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `feuilles-poules`, `feuille-inscription` |
 
 ---
@@ -158,6 +160,7 @@ PBoule/
 ├── python/                        # Scripts Python de génération
 │   ├── generate_feuille_poule.py  # Feuilles de poule
 │   ├── generate_feuille_inscription.py  # Feuille d'inscription
+│   ├── generate_phases_finales.py # Feuilles de phases finales
 │   ├── generate_pages.py          # Site de documentation GitHub Pages
 │   ├── compute_logo_yaml.py       # Cache des caractéristiques des logos
 │   ├── extract_changelog.py       # Extraction des notes de release

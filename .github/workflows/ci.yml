@@ -89,7 +89,7 @@ jobs:
         run: |
           ls -lh documents/*.pdf
           test -f documents/feuille_inscription.pdf
-          test -f documents/poule_A_04eq.pdf
+          test -f documents/poule_A.pdf
 
       - name: Archiver les documents générés
         uses: actions/upload-artifact@v6

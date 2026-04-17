@@ -86,7 +86,7 @@ logo: $(LOGO_YAML) ## Calcule les caractéristiques des logos → logo.yaml
 # ---------------------------------------------------------------------------
 
 .PHONY: all
-all: pboule-pdf feuilles-poules feuille-inscription ## Génère tous les documents
+all: pboule-pdf feuilles-poules feuille-inscription phases-finales ## Génère tous les documents
 
 # documents/pboule.pdf — transcription PDF de PBOULE.md
 $(PBOULE_PDF): PBOULE.md $(LOGO_YAML) | init
@@ -120,6 +120,20 @@ feuille-inscription: $(LOGO_YAML) | init ## Génère la feuille d'inscription (A
 	@echo "Génération de la feuille d'inscription…"
 	@$(PYTHON) $(PYTHON_DIR)/generate_feuille_inscription.py \
 	    --n-equipes     $(TEAMS_MAX) \
+	    --output        $(DOCS_DIR) \
+	    --logo-yaml     $(LOGO_YAML)
+
+# ---------------------------------------------------------------------------
+# Phases finales
+# ---------------------------------------------------------------------------
+
+.PHONY: phases-finales
+phases-finales: $(LOGO_YAML) | init ## Génère les feuilles de phases finales (une par nombre d'équipes)
+	@echo "Génération des phases finales…"
+	@$(PYTHON) $(PYTHON_DIR)/generate_phases_finales.py \
+	    --teams-min     $(TEAMS_MIN) \
+	    --teams-max     $(TEAMS_MAX) \
+	    --pool-base     $(POOL_BASE) \
 	    --output        $(DOCS_DIR) \
 	    --logo-yaml     $(LOGO_YAML)
 
@@ -206,7 +220,7 @@ install-hooks: ## Installe les hooks pre-commit dans le dépôt git local
 # ---------------------------------------------------------------------------
 
 .PHONY: pages
-pages: feuilles-poules feuille-inscription ## Génère le site statique dans pages/
+pages: feuilles-poules feuille-inscription phases-finales ## Génère le site statique dans pages/
 	@echo "Génération du site de documentation…"
 	@$(PYTHON) $(PYTHON_DIR)/generate_pages.py \
 	    --docs-dir         $(DOCS_DIR) \
