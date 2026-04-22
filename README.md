@@ -107,7 +107,8 @@ Pour modifier les valeurs de façon permanente, éditer directement les variable
 | `bump-patch` | Incrémente la version patch (`X.Y.Z → X.Y.(Z+1)`) | — |
 | `install-hooks` | Installe les hooks pre-commit dans le dépôt git local | — |
 | `feuilles-finales` | Génère les feuilles de phases finales dans `documents/` | `logo` |
-| `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `guide-pdf`, `feuilles-poules`, `feuille-inscription`, `feuilles-finales` |
+| `pages` | Génère le site statique dans `pages/` (HTML + PDF) | `guide-pdf`, `feuilles-poules`, `feuille-inscription`, `feuilles-finales`, `pages-site` |
+| `pages-site` | Génère le site HTML depuis les documents existants dans `documents/` | — |
 
 ---
 
@@ -118,7 +119,7 @@ Le fichier `.github/workflows/ci.yml` définit quatre jobs :
 | Job | Déclencheur | Dépendances | Description |
 |---|---|---|---|
 | `lint` | push, PR | — | Analyse ruff via pre-commit (lint + formatage) |
-| `generate` | push, PR | `lint` | Génère tous les PDF (hors `pboule-pdf`) et les archive |
+| `generate` | push, PR | `lint` | Appelle `make all` ; génère tous les PDF et les archive |
 | `release` | tag `vX.Y.Z` | `generate` | Crée une GitHub Release avec les PDF et une archive ZIP |
 | `pages` | tag `vX.Y.Z` | `generate` | Génère et publie le site de documentation sur GitHub Pages |
 

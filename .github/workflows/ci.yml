@@ -38,8 +38,8 @@ jobs:
           SKIP: no-commit-to-branch
 
   # -------------------------------------------------------------------------
-  # Génération des documents — tests des scripts Python
-  # (sans tectonic : pboule-pdf exclu car nécessite une cache LaTeX)
+  # Génération des documents — appelle `make all`.
+  # Ajouter une nouvelle cible de génération : modifier le Makefile uniquement.
   # -------------------------------------------------------------------------
   generate:
     name: Génération des documents
@@ -56,40 +56,16 @@ jobs:
           activate-environment: pboule
           conda-remove-defaults: "true"
 
-      - name: Calculer les caractéristiques des logos
-        shell: bash -el {0}
-        run: |
-          python python/compute_logo_yaml.py \
-            --logo-main     logo_COF_montlaur_rose.png \
-            --logo-petanque logo_petanque.png \
-            --logo-height   3.5 \
-            --output        logo.yaml
-
-      - name: Générer les feuilles de poule
-        shell: bash -el {0}
-        run: |
-          mkdir -p documents
-          python python/generate_feuille_poule.py \
-            --teams-min  6 \
-            --teams-max  32 \
-            --pool-base  4 \
-            --output     documents \
-            --logo-yaml  logo.yaml
-
-      - name: Générer la feuille d'inscription
-        shell: bash -el {0}
-        run: |
-          python python/generate_feuille_inscription.py \
-            --n-equipes 32 \
-            --output    documents \
-            --logo-yaml logo.yaml
+      - name: Générer les documents (make all)
+        run: make all
 
       - name: Vérifier les fichiers produits
-        shell: bash -el {0}
         run: |
           ls -lh documents/*.pdf
+          test -f documents/guide_organisateur.pdf
           test -f documents/feuille_inscription.pdf
           test -f documents/poule_A.pdf
+          test -f documents/finales_06-10eq.pdf
 
       - name: Archiver les documents générés
         uses: actions/upload-artifact@v6
@@ -152,8 +128,7 @@ jobs:
             --title "PBoule ${TAG}" \
             --notes-file /tmp/release_notes.md \
             pboule-documents-${TAG}.zip \
-            documents/feuille_inscription.pdf \
-            documents/poule_*.pdf
+            documents/*.pdf
 
   # -------------------------------------------------------------------------
   # GitHub Pages — publie le site de documentation statique
@@ -189,16 +164,8 @@ jobs:
           name: documents-generes
           path: documents/
 
-      - name: Générer le site de documentation
-        shell: bash -el {0}
-        run: |
-          python python/generate_pages.py \
-            --docs-dir         documents \
-            --output-dir       pages \
-            --pboule-md        PBOULE.md \
-            --changelog        CHANGELOG.md \
-            --logo-creation-md creation_logo_petanque.md \
-            --logo-yaml        logo.yaml
+      - name: Générer le site de documentation (make pages-site)
+        run: make pages-site
 
       - name: Configurer GitHub Pages
         uses: actions/configure-pages@v5

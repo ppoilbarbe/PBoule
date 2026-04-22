@@ -12,10 +12,14 @@ Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
   `make all`, `make pages` et le site de documentation GitHub Pages.
 - **`python/pboule/`** : package partagé (`poules.py`, `palette.py`, `logos.py`, `utils.py`) ;
   tous les scripts de génération importent depuis ce package.
-- **Makefile** : cible `guide-pdf` ; paramètres de compétition en `?=` pour autoriser la
-  surcharge par variable d'environnement ou ligne de commande ; aide mise à jour.
+- **Makefile** : cibles `guide-pdf` et `pages-site` ; paramètres de compétition en `?=`
+  pour autoriser la surcharge par variable d'environnement ou ligne de commande ; aide mise à jour.
 
 ### Changed
+- **CI (`ci.yml`)** : le job `generate` appelle `make all` et le job `pages` appelle
+  `make pages-site` au lieu de dupliquer les appels Python. Ajouter un nouveau document
+  n'implique désormais que de modifier le Makefile. Correctif : génération des phases finales
+  et assets `finales_*.pdf` dans la release absents depuis v0.3.0.
 - **`PBOULE.md`** : `guide_organisateur.pdf` ajouté aux documents produits.
 - **`README.md`** : noms de fichiers de poules corrigés (`poule_A.pdf` au lieu de
   `poule_A_04eq.pdf`) ; section paramètres enrichie (trois modes de surcharge) ;

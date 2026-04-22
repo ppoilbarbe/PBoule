@@ -72,7 +72,10 @@ help: ## Affiche cette aide
 all: pboule-pdf guide-pdf feuilles-poules feuille-inscription feuilles-finales ## Génère tous les documents
 
 .PHONY: pages
-pages: guide-pdf feuilles-poules feuille-inscription feuilles-finales ## Génère le site statique dans pages/
+pages: guide-pdf feuilles-poules feuille-inscription feuilles-finales pages-site ## Génère le site statique dans pages/
+
+.PHONY: pages-site
+pages-site: ## Génère le site HTML depuis les documents existants dans documents/
 	@echo "Génération du site de documentation…"
 	@$(PYTHON) $(PYTHON_DIR)/generate_pages.py \
 	    --docs-dir         $(DOCS_DIR) \
