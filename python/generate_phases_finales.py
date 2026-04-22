@@ -671,6 +671,12 @@ def generer(
         c.setFillColor(_GRIS_TITRE_COL)
         c.setFont("Helvetica-Bold", 13)
         c.drawString(marge, ph_l - marge - 0.75 * cm, titre)
+        c.setFont("Helvetica-Oblique", 8)
+        c.drawString(
+            marge,
+            ph_l - marge - 1.15 * cm,
+            "Faire jouer les matches dès que c'est possible",
+        )
         draw_logos(c, pw_l, ph_l, marge, logo_data)
 
         _render_bracket(
@@ -702,6 +708,12 @@ def generer(
             c.setFillColor(_GRIS_TITRE_COL)
             c.setFont("Helvetica-Bold", 11)
             c.drawString(marge, ph_l - marge - 0.75 * cm, sous_titre)
+            c.setFont("Helvetica-Oblique", 8)
+            c.drawString(
+                marge,
+                ph_l - marge - 1.15 * cm,
+                "Faire jouer les matches dès que c'est possible",
+            )
             if page_idx == 0:
                 draw_logos(c, pw_l, ph_l, marge, logo_data)
 
@@ -782,6 +794,12 @@ def generer_split(
     c.setFillColor(_GRIS_TITRE_COL)
     c.setFont("Helvetica-Bold", 13)
     c.drawString(marge, ph_l - marge - 0.75 * cm, titre_h_doc)
+    c.setFont("Helvetica-Oblique", 8)
+    c.drawString(
+        marge,
+        ph_l - marge - 1.15 * cm,
+        "Faire jouer les matches dès que c'est possible",
+    )
 
     _render_huitieme(
         c,
@@ -814,6 +832,12 @@ def generer_split(
     c2.setFillColor(_GRIS_TITRE_COL)
     c2.setFont("Helvetica-Bold", 13)
     c2.drawString(marge, ph_l - marge - 0.75 * cm, titre_q_doc)
+    c2.setFont("Helvetica-Oblique", 8)
+    c2.drawString(
+        marge,
+        ph_l - marge - 1.15 * cm,
+        "Faire jouer les matches dès que c'est possible",
+    )
 
     _render_quart_vide(
         c2,

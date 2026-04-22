@@ -181,6 +181,10 @@ Les cases du premier tour sont **pré-remplies** avec le résultat de poule de c
 
 La feuille inclut un **match pour la 3e place** entre les deux perdants des demi-finales.
 
+> **Colonne « Prél. » :** elle apparaît lorsque le nombre de qualifiés n'est pas une puissance de 2 (ex. 6 ou 10 qualifiés). Les deux cases colorées superposées indiquent les équipes qui s'affrontent dans ce match préliminaire ; le gagnant est reporté dans la case vide adjacente et entre ainsi dans le round 1. Les matches « Prél. » peuvent être joués dès que les équipes sont connues, sans attendre les autres poules.
+
+> **Jouer dès que possible** — ne pas attendre la fin de tous les matches d'un même tour. Dès que les deux équipes d'un match sont connues — y compris après un match « Prél. » — ce match peut démarrer immédiatement.
+
 ---
 
 ## Conseils pratiques

@@ -3,6 +3,12 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.4.2] – 2026-04-22
+
+### Changed
+- **Feuilles de phases finales** : ajout de la note « Faire jouer les matches dès que c'est possible » sous le titre de chaque page de bracket (modes A4, A3, 8es de finale, quarts de finale).
+- **Guide de l'organisateur** : ajout d'une explication sur la colonne « Prél. » (matches préliminaires quand les qualifiés ne forment pas une puissance de 2) et instruction de jouer chaque match dès que les deux équipes sont connues.
+
 ## [0.4.1] – 2026-04-22
 
 ### Changed
