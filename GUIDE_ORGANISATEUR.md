@@ -121,17 +121,26 @@ Pour chaque match :
 
 | Résultat | Points au classement |
 |---|---|
-| Équipe gagnante | **13 points** (quels que soient les scores) |
-| Équipe perdante | Son score réel (ex. 7 points si la partie se termine 13–7) |
+| Équipe gagnante | **Score réel** (≥ 13 — le dépassement au-delà de 13 est comptabilisé) |
+| Équipe perdante | Son score réel (ex. 7 points si la partie se termine 15–7) |
+
+> L'équipe qui atteint 13 points gagne, quels que soient les scores. Si la mène en cours lui donne plus de 13 (ex. 12 points + 3 marqués = 15), ce score réel est enregistré. Il servira à départager d'éventuelles égalités via le critère 3 (points marqués en victoire).
 
 ### 2.4 — Classement et qualification
 
-Une fois tous les matches de la poule terminés :
+Une fois tous les matches de la poule terminés, classer les équipes en appliquant les critères suivants **dans l'ordre strict** :
 
-1. Compter le nombre de **victoires** de chaque équipe (colonne TOTAL)
-2. En cas d'égalité de victoires, départager par la somme des points marqués
-3. Les **2 premières équipes** se qualifient pour la phase finale
-4. Reporter leur **résultat de poule** (ex. « A1 », « A2 ») et leur **nom d'équipe** sur la feuille de phases finales dès que le classement est établi
+| Priorité | Critère | Avantage |
+|---|---|---|
+| 1 | **Nombre de victoires** | L'équipe ayant remporté le plus grand nombre de rencontres est classée devant les autres. |
+| 2 | **Points encaissés en défaite** | En cas d'égalité de victoires, l'équipe ayant concédé le **moins** de points lors de ses défaites est classée devant l'autre. |
+| 3 | **Points marqués en victoire** | En cas d'égalité aux deux critères précédents, l'équipe ayant marqué le **plus** de points lors de ses victoires est classée devant l'autre. |
+| 4 | **Tirage au sort** | Si l'égalité persiste après les trois critères ci-dessus, un tirage au sort désigne l'équipe mieux classée. |
+
+Une fois le classement établi :
+
+- Les **2 premières équipes** se qualifient pour la phase finale.
+- Reporter leur **résultat de poule** (ex. « A1 », « A2 ») et leur **nom d'équipe** sur la feuille de phases finales.
 
 > **Pour N = 6 ou N = 7 (poule unique) :** seulement 2 équipes se qualifient. La 1re et la 2e de la poule unique jouent directement la finale.
 
@@ -179,5 +188,5 @@ La feuille inclut un **match pour la 3e place** entre les deux perdants des demi
 - **Imprimez en couleur** — les feuilles de poule sont codées par couleur (une couleur par poule), ce qui facilite l'identification sur le terrain.
 - **Prévoyez des exemplaires de rechange** — une erreur de report est vite arrivée ; avoir un exemplaire supplémentaire de chaque feuille évite les blocages.
 - **Nombre d'équipes incertain ?** — imprimez les feuilles pour N et N+1 avant la compétition ; vous n'utiliserez que celles qui correspondent au nombre final d'inscrits.
-- **Égalité parfaite en poule** — si deux équipes ont exactement le même nombre de victoires et la même somme de points, procéder à un tirage au sort pour désigner le qualifié.
+- **Égalité en poule** — appliquer les critères de classement dans l'ordre : 1) nombre de victoires, 2) points encaissés en défaite (le moins possible), 3) points marqués en victoire (le plus possible), 4) tirage au sort si l'égalité persiste.
 - **Démarrage parallèle** — toutes les poules peuvent se dérouler simultanément. La phase finale ne commence que lorsque **tous** les classements de poule sont établis et reportés sur la feuille de phases finales.

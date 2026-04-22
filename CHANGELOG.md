@@ -3,6 +3,12 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.4.1] – 2026-04-22
+
+### Changed
+- **Règles de classement en poule** : ajout des 4 critères de départage dans l'ordre strict (victoires, points encaissés en défaite, points marqués en victoire, tirage au sort) — documentés dans `PBOULE.md` et `GUIDE_ORGANISATEUR.md`.
+- **Score du gagnant** : le score réel du gagnant (≥ 13, dépassement inclus) est désormais enregistré au lieu d'une valeur forfaitaire de 13, afin de permettre le départage par le critère 3.
+
 ## [0.4.0] – 2026-04-22
 
 ### Added

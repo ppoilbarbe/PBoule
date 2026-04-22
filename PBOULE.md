@@ -161,7 +161,16 @@ C(N, 2) lignes de matches pour N équipes dans la poule.
 |---|---|
 | **Classement** | Rang ordinal (1er, 2e…) |
 | **Équipe** | Équipe classée (remplie après les matches) |
-| **Points** | Points réalisés dans le match : 13 pour le gagnant, score réel pour le perdant |
+| **Points** | Score réel du match : score réel pour le gagnant (≥ 13, dépassement inclus) et pour le perdant |
+
+### Critères de classement au sein d'une poule
+
+Les équipes sont classées selon les critères suivants, appliqués dans l'ordre strict :
+
+1. **Nombre de victoires** — l'équipe ayant remporté le plus grand nombre de rencontres est classée devant les autres.
+2. **Points encaissés en cas de défaite** — en cas d'égalité au critère 1, l'équipe ayant concédé le moins de points lors de ses défaites est classée devant l'autre.
+3. **Points marqués en cas de victoire** — en cas d'égalité aux critères 1 et 2, l'équipe ayant marqué le plus de points lors de ses victoires est classée devant l'autre.
+4. **Tirage au sort** — si l'égalité persiste après les trois critères précédents, un tirage au sort désigne l'équipe mieux classée.
 
 ---
 
