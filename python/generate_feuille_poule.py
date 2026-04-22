@@ -24,7 +24,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 import argparse
 import itertools
 
-from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import ParagraphStyle
@@ -38,36 +37,10 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from logos import draw_logos
-
-# ── Palette ──────────────────────────────────────────────────────────────────
-
-COULEURS: dict[int, colors.Color] = {
-    1: colors.HexColor("#E53935"),  # Rouge
-    2: colors.HexColor("#1E88E5"),  # Bleu
-    3: colors.HexColor("#43A047"),  # Vert
-    4: colors.HexColor("#FB8C00"),  # Orange
-    5: colors.HexColor("#8E24AA"),  # Violet
-    6: colors.HexColor("#00ACC1"),  # Cyan
-    7: colors.HexColor("#D81B60"),  # Rose
-    8: colors.HexColor("#6D4C41"),  # Brun
-    9: colors.HexColor("#9E9D24"),  # Olive
-    10: colors.HexColor("#283593"),  # Bleu marine
-    11: colors.HexColor("#00695C"),  # Sarcelle
-    12: colors.HexColor("#E65100"),  # Orange brûlé
-    13: colors.HexColor("#37474F"),  # Gris ardoise
-    14: colors.HexColor("#880E4F"),  # Bordeaux
-    15: colors.HexColor("#33691E"),  # Vert forêt
-    16: colors.HexColor("#4527A0"),  # Indigo
-}
-
-NOMS_POULES: dict[int, str] = {i: chr(64 + i) for i in range(1, 17)}
-
-_NOIR = colors.black
-_BLANC = colors.white
-_GRIS_FOND = colors.HexColor("#F0F0F0")
-_GRIS_GRILLE = colors.HexColor("#AAAAAA")
-
+from pboule.logos import draw_logos
+from pboule.palette import _BLANC, _BLEU, _GRIS_FOND, _GRIS_GRILLE, _NOIR
+from pboule.poules import COULEURS, NOMS_POULES, repartition_poules
+from pboule.utils import charger_logo_yaml
 
 # ── Utilitaires ──────────────────────────────────────────────────────────────
 
@@ -80,29 +53,6 @@ def _matches(n: int) -> list[tuple[int, int]]:
 def _rang(n: int) -> str:
     """Rang ordinal français : 1er, 2e, 3e…"""
     return "1er" if n == 1 else f"{n}e"
-
-
-def repartition_poules(n_total: int, base: int = 4) -> list[int]:
-    """
-    Répartit n_total équipes en poules de taille `base` ou `base+1`.
-
-    Priorités (de haut en bas) :
-      1. Distribution uniforme en poules de (base+1) si N divisible par base+1.
-      2. Distribution uniforme en poules de base si N divisible par base.
-      3. Distribution mixte minimisant le nombre total de poules.
-    """
-    if n_total % (base + 1) == 0:
-        return [base + 1] * (n_total // (base + 1))
-    if n_total % base == 0:
-        return [base] * (n_total // base)
-    for n_poules in range(max(1, n_total // (base + 1)), n_total + 1):
-        x = n_total - n_poules * base
-        y = n_poules - x
-        if 0 <= x <= n_poules and y >= 0:
-            return [base + 1] * x + [base] * y
-    n_poules = max(1, n_total // base)
-    reste = n_total - n_poules * base
-    return [base] * n_poules + ([reste] if reste else [])
 
 
 # ── Construction de la story Platypus ────────────────────────────────────────
@@ -196,9 +146,7 @@ def _build_story(
     story: list = []
 
     # ── Titre principal ───────────────────────────────────────────────────────
-    titre = titre_complet or (
-        f"Poule\u00a0«\u00a0{nom}\u00a0»\u00a0\u2014\u00a0{n_equipes}\u00a0équipes"
-    )
+    titre = titre_complet or (f"Poule « {nom} » — {n_equipes} équipes")
     story.append(Paragraph(titre, st_titre))
     story.append(Spacer(1, fs_tit * 0.6))
 
@@ -209,15 +157,15 @@ def _build_story(
     data1 = [
         [
             Paragraph("ÉQUIPE", st_ent()),
-            Paragraph("N°\u00a0INSCRIPTION", st_ent()),
-            Paragraph("NOMS\u00a0–\u00a0PRÉNOMS", st_ent()),
+            Paragraph("N° INSCRIPTION", st_ent()),
+            Paragraph("NOMS – PRÉNOMS", st_ent()),
         ]
     ]
     for i in range(n_equipes):
         num_insc, noms = equipes[i]
         data1.append(
             [
-                Paragraph(f"<b>Équipe\u00a0{i + 1}</b>", st_body()),
+                Paragraph(f"<b>Équipe {i + 1}</b>", st_body()),
                 Paragraph(str(num_insc) if num_insc else "", st_body()),
                 Paragraph(noms or "", st_body(align=TA_LEFT)),
             ]
@@ -253,14 +201,14 @@ def _build_story(
         [
             Paragraph("Matchs", st_ent()),
             Paragraph("Résultats", st_ent()),
-            *[Paragraph(f"Éq.\u00a0{i}", st_ent()) for i in range(1, n_equipes + 1)],
+            *[Paragraph(f"Éq. {i}", st_ent()) for i in range(1, n_equipes + 1)],
         ]
     ]
 
     for ea, eb in liste_matches:
         ligne = [
-            Paragraph(f"{ea}\u00a0–\u00a0{eb}", st_body()),
-            Paragraph("\u2014", st_body()),
+            Paragraph(f"{ea} – {eb}", st_body()),
+            Paragraph("—", st_body()),
         ]
         for eq in range(1, n_equipes + 1):
             ligne.append("" if eq in (ea, eb) else "_NOIR_")
@@ -444,6 +392,136 @@ def generer_multi(
     return sortie.resolve()
 
 
+# ── Cas particulier : poule réduite ──────────────────────────────────────────
+
+
+def _est_pool_reduite(tailles: list[int], pool_base: int) -> bool:
+    """
+    Vrai si la répartition correspond au cas « poule réduite » :
+    au moins 3 poules, toutes de taille pool_base sauf la dernière
+    qui vaut pool_base-1.
+    """
+    return (
+        len(tailles) >= 3
+        and tailles[-1] == pool_base - 1
+        and all(t == pool_base for t in tailles[:-1])
+    )
+
+
+def _build_info_repartition(n_total: int, tailles: list[int]) -> list:
+    """Bloc compact indiquant la répartition des poules."""
+    n_poules = len(tailles)
+
+    st_hdr = ParagraphStyle(
+        "IHdr",
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        textColor=_BLANC,
+        alignment=TA_CENTER,
+    )
+    st_poule = ParagraphStyle(
+        "IPoule",
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        textColor=_NOIR,
+        alignment=TA_CENTER,
+    )
+    st_val = ParagraphStyle(
+        "IVal",
+        fontName="Helvetica",
+        fontSize=9,
+        textColor=_NOIR,
+        alignment=TA_CENTER,
+    )
+
+    data: list[list] = [
+        [
+            Paragraph(
+                f"{n_total} équipes — {n_poules} poules",
+                st_hdr,
+            ),
+            "",
+        ]
+    ]
+    for i, n in enumerate(tailles):
+        lettre = NOMS_POULES.get(i + 1, str(i + 1))
+        data.append(
+            [
+                Paragraph(f"Poule {lettre}", st_poule),
+                Paragraph(f"{n} équipes", st_val),
+            ]
+        )
+
+    col_w = [3.5 * cm, 3.0 * cm]
+    h_row = 0.65 * cm
+    n_rows = len(data)
+
+    style = [
+        ("SPAN", (0, 0), (1, 0)),
+        ("BACKGROUND", (0, 0), (1, 0), _BLEU),
+        ("GRID", (0, 0), (-1, -1), 0.5, _GRIS_GRILLE),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 2),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+    ]
+    for i in range(1, n_rows):
+        coul = COULEURS.get(i, _NOIR)
+        style.extend(
+            [
+                ("TEXTCOLOR", (0, i), (0, i), coul),
+                ("BACKGROUND", (0, i), (-1, i), _BLANC if i % 2 == 1 else _GRIS_FOND),
+            ]
+        )
+
+    t = Table(data, colWidths=col_w, rowHeights=h_row)
+    t.setStyle(TableStyle(style))
+    t.hAlign = "LEFT"
+
+    return [t, Spacer(1, 0.4 * cm)]
+
+
+def generer_pool_reduite(
+    n_total: int,
+    tailles: list[int],
+    sortie: Path,
+    logo_data: dict | None = None,
+) -> Path:
+    """
+    Génère la feuille spéciale pour le cas « poule réduite » :
+    page unique contenant un tableau de répartition suivi de la feuille
+    de la dernière poule (taille pool_base-1).
+    """
+    n_poules = len(tailles)
+    n_reduite = tailles[-1]
+    page_w, page_h = landscape(A4)
+    marge = 1.0 * cm
+
+    story: list = []
+    story.extend(_build_info_repartition(n_total, tailles))
+    story.extend(_build_story(n_poules, n_reduite))
+
+    sortie.parent.mkdir(parents=True, exist_ok=True)
+    lettre = NOMS_POULES.get(n_poules, str(n_poules))
+    doc = SimpleDocTemplate(
+        str(sortie),
+        pagesize=landscape(A4),
+        leftMargin=marge,
+        rightMargin=marge,
+        topMargin=marge,
+        bottomMargin=marge,
+        title=(f"Poule {lettre} — {n_reduite} équipes ({n_total} équipes au total)"),
+    )
+
+    def _cb_first(canvas, _doc):
+        draw_logos(canvas, page_w, page_h, marge, logo_data)
+
+    doc.build(story, onFirstPage=_cb_first, onLaterPages=lambda c, d: None)
+    return sortie.resolve()
+
+
 # ── Génération de l'ensemble des gabarits ────────────────────────────────────
 
 
@@ -462,28 +540,39 @@ def generer_toutes_feuilles(
       maximum nécessaire — chaque PDF contient 2 pages :
         page 1 : pool_base équipes
         page 2 : pool_base+1 équipes
-    • poule_unique_{N:02d}eq.pdf  pour chaque N de [teams_min, teams_max]
-      non décomposable en poules de pool_base ou pool_base+1 équipes.
+    • poule_{lettre}_{N:02d}eq.pdf  quand la répartition de N équipes donne
+      au moins 3 poules de pool_base + une dernière poule de pool_base-1
+      (ex. N=11, base=4 → A=4, B=4, C=3 → poule_C_11eq.pdf).
+    • poule_unique_{N:02d}eq.pdf  pour chaque N non décomposable autrement
+      (ex. N=6, N=7 avec base=4).
     """
     output.mkdir(parents=True, exist_ok=True)
     generated: list[Path] = []
 
-    valides = set(range(pool_base, (pool_base + 1) + 1))  # {base, base+1}
+    valides = {pool_base, pool_base + 1}
 
-    # ── Cas particuliers : Poule UNIQUE ──────────────────────────────────────
+    # ── Cas particuliers ──────────────────────────────────────────────────────
     for n in range(teams_min, teams_max + 1):
         tailles = repartition_poules(n, pool_base)
         if any(t not in valides for t in tailles):
-            chemin = output / f"poule_unique_{n:02d}eq.pdf"
-            pdf = generer(
-                num_poule=1,
-                n_equipes=n,
-                sortie=chemin,
-                logo_data=logo_data,
-                titre_complet=f"Poule\u00a0UNIQUE\u00a0de\u00a0{n}\u00a0équipes",
-            )
-            generated.append(pdf)
-            print(f"  {pdf}  [Poule UNIQUE]")
+            if _est_pool_reduite(tailles, pool_base):
+                lettre = NOMS_POULES.get(len(tailles), str(len(tailles)))
+                chemin = output / f"poule_{lettre}_{n:02d}eq.pdf"
+                pdf = generer_pool_reduite(n, tailles, chemin, logo_data)
+                generated.append(pdf)
+                tag = f"Poule {lettre} réduite — {tailles[-1]} éq."
+                print(f"  {pdf}  [{tag}]")
+            else:
+                chemin = output / f"poule_unique_{n:02d}eq.pdf"
+                pdf = generer(
+                    num_poule=1,
+                    n_equipes=n,
+                    sortie=chemin,
+                    logo_data=logo_data,
+                    titre_complet=f"Poule UNIQUE de {n} équipes",
+                )
+                generated.append(pdf)
+                print(f"  {pdf}  [Poule UNIQUE]")
 
     # ── Cas normaux : un PDF par lettre, regroupant les deux tailles ─────────
     normaux = [
@@ -506,23 +595,6 @@ def generer_toutes_feuilles(
             print(f"  {pdf}  [{pool_base} eq. + {pool_base + 1} eq.]")
 
     return generated
-
-
-# ── Chargement du fichier logo ────────────────────────────────────────────────
-
-
-def _charger_logo_yaml(chemin: Path) -> dict | None:
-    """Charge logo.yaml (format JSON, compatible YAML si pyyaml est installé)."""
-    try:
-        import yaml
-
-        with open(chemin, encoding="utf-8") as f:
-            return yaml.safe_load(f)
-    except ImportError:
-        import json
-
-        with open(chemin, encoding="utf-8") as f:
-            return json.load(f)
 
 
 # ── Interface en ligne de commande ────────────────────────────────────────────
@@ -582,7 +654,7 @@ def main() -> None:
 
     logo_data = None
     if args.logo_yaml and args.logo_yaml.exists():
-        logo_data = _charger_logo_yaml(args.logo_yaml)
+        logo_data = charger_logo_yaml(args.logo_yaml)
 
     pdfs = generer_toutes_feuilles(
         teams_min=args.teams_min,

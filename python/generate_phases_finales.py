@@ -20,7 +20,9 @@ Placement anti-intrapoule (best-effort) :
 Format : A4 paysage. Si la hauteur de case descend sous MIN_CASE_H, le document
          est produit en 2 pages A4 portrait à assembler en A3 paysage.
 
-Nommage : finales_{N}eq.pdf  /  finales_{N1}-{N2}eq.pdf  /  finales_{N1}_{N2}_...eq.pdf
+Nommage (2P < 16)  : finales_{N}eq.pdf / finales_{N1}-{N2}eq.pdf
+                     finales_{N1}_{N2}_...eq.pdf
+Nommage (2P ≥ 16) : finales_huitieme_{N}eq.pdf + finales_quart_{N}eq.pdf
 
 Usage :
     python python/generate_phases_finales.py \\
@@ -44,33 +46,13 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm, mm
 from reportlab.pdfgen import canvas as rl_canvas
 
-from logos import draw_logos
+from pboule.logos import draw_logos
+from pboule.palette import _BLANC, _GRIS_FOND, _NOIR
+from pboule.poules import COULEURS, NOMS_POULES, repartition_poules
+from pboule.utils import charger_logo_yaml
 
-# ── Palette (identique à generate_feuille_poule) ─────────────────────────────
+# ── Constantes locales ────────────────────────────────────────────────────────
 
-COULEURS: dict[int, colors.Color] = {
-    1: colors.HexColor("#E53935"),  # Rouge
-    2: colors.HexColor("#1E88E5"),  # Bleu
-    3: colors.HexColor("#43A047"),  # Vert
-    4: colors.HexColor("#FB8C00"),  # Orange
-    5: colors.HexColor("#8E24AA"),  # Violet
-    6: colors.HexColor("#00ACC1"),  # Cyan
-    7: colors.HexColor("#D81B60"),  # Rose
-    8: colors.HexColor("#6D4C41"),  # Brun
-    9: colors.HexColor("#9E9D24"),  # Olive
-    10: colors.HexColor("#283593"),  # Bleu marine
-    11: colors.HexColor("#00695C"),  # Sarcelle
-    12: colors.HexColor("#E65100"),  # Orange brûlé
-    13: colors.HexColor("#37474F"),  # Gris ardoise
-    14: colors.HexColor("#880E4F"),  # Bordeaux
-    15: colors.HexColor("#33691E"),  # Vert forêt
-    16: colors.HexColor("#4527A0"),  # Indigo
-}
-NOMS_POULES: dict[int, str] = {i: chr(64 + i) for i in range(1, 17)}
-
-_NOIR = colors.black
-_BLANC = colors.white
-_GRIS_FOND = colors.HexColor("#F0F0F0")
 _GRIS_VIDE = colors.HexColor("#F8F8F8")
 _GRIS_TITRE_COL = colors.HexColor("#37474F")
 
@@ -92,25 +74,6 @@ _NOM_TOURS: dict[int, str] = {
 
 def _nom_tour(n: int) -> str:
     return _NOM_TOURS.get(n, f"{n}-finale")
-
-
-# ── Répartition en poules ─────────────────────────────────────────────────────
-
-
-def repartition_poules(n_total: int, base: int = 4) -> list[int]:
-    """Répartit n_total équipes en poules de taille base ou base+1."""
-    if n_total % (base + 1) == 0:
-        return [base + 1] * (n_total // (base + 1))
-    if n_total % base == 0:
-        return [base] * (n_total // base)
-    for n_poules in range(max(1, n_total // (base + 1)), n_total + 1):
-        x = n_total - n_poules * base
-        y = n_poules - x
-        if 0 <= x <= n_poules and y >= 0:
-            return [base + 1] * x + [base] * y
-    n_poules = max(1, n_total // base)
-    reste = n_total - n_poules * base
-    return [base] * n_poules + ([reste] if reste else [])
 
 
 # ── Construction du bracket sans bye ─────────────────────────────────────────
@@ -347,6 +310,147 @@ def _render_bracket(
     for tour in range(1, n_rounds + 1):
         n_matches = len(round_y_centers) // 2
         x_col = x_r1 + tour * (case_w + conn_w)
+        x_prev_right = x_col - conn_w
+        next_centers: list[float] = []
+
+        for m in range(n_matches):
+            y_h = round_y_centers[2 * m]
+            y_b = round_y_centers[2 * m + 1]
+            y_center = (y_h + y_b) / 2
+            _draw_case_vide(c, x_col, y_center - case_h / 2, case_w, case_h, fs)
+            _draw_connector(c, x_prev_right, y_h, y_b, x_col)
+            next_centers.append(y_center)
+
+        round_y_centers = next_centers
+
+    # ── Match pour la 3e place ────────────────────────────────────────────────
+    if draw_3e:
+        x3 = x0
+        c.setFillColor(_GRIS_TITRE_COL)
+        c.setFont("Helvetica-Bold", fs)
+        c.drawString(x3, y_3e_top, "Match pour la 3e place")
+        y3 = y_3e_top - 0.2 * cm
+        _draw_case_vide(c, x3, y3 - case_h, case_w, case_h, fs)
+        _draw_case_vide(c, x3, y3 - 2 * case_h, case_w, case_h, fs)
+        x3_res = x3 + case_w + conn_w
+        _draw_connector(c, x3 + case_w, y3 - case_h / 2, y3 - 3 * case_h / 2, x3_res)
+        _draw_case_vide(c, x3_res, y3 - 3 * case_h / 2, case_w, case_h, fs)
+
+
+# ── Rendu des feuilles divisées (huitièmes / quarts) ─────────────────────────
+
+
+def _render_huitieme(
+    c,
+    bracket: dict,
+    x0: float,
+    y_top: float,
+    case_w: float,
+    case_h: float,
+    conn_w: float,
+    fs: float,
+) -> None:
+    """
+    Dessine uniquement les 8es de finale : prél. (si r>0) + round1 + colonne gagnant.
+
+    La colonne gagnant est étiquetée « Quarts de finale → » pour indiquer que
+    ses cases sont à reporter sur la feuille des quarts.
+    """
+    q = bracket["q"]
+    r = bracket["r"]
+    prelim: list[tuple[Slot, Slot]] = bracket["prelim"]
+    round1: list[Slot | None] = bracket["round1"]
+    has_prelim = r > 0
+
+    x_r1 = x0 + (case_w + conn_w) if has_prelim else x0
+    x_gagnant = x_r1 + (case_w + conn_w)
+
+    # ── En-têtes ──────────────────────────────────────────────────────────────
+    c.setFillColor(_GRIS_TITRE_COL)
+    c.setFont("Helvetica-Bold", fs + 0.5)
+    if has_prelim:
+        c.drawCentredString(x0 + case_w / 2, y_top, "Prél.")
+    c.drawCentredString(x_r1 + case_w / 2, y_top, _nom_tour(q))
+    c.drawCentredString(x_gagnant + case_w / 2, y_top, "Quarts de finale →")
+
+    y0 = y_top - 0.4 * cm
+
+    # ── Prélim. + Round 1 ─────────────────────────────────────────────────────
+    y_offset = 0.0
+    round1_y_centers: list[float] = []
+    pi = 0
+
+    for pos in range(q):
+        slot = round1[pos]
+        if slot is None:
+            sh, sb = prelim[pi]
+            pi += 1
+
+            yb_h = y0 - y_offset - case_h
+            yb_b = y0 - y_offset - 2 * case_h
+            _draw_case_remplie(c, x0, yb_h, case_w, case_h, sh[0], sh[1], fs)
+            _draw_case_remplie(c, x0, yb_b, case_w, case_h, sb[0], sb[1], fs)
+            _draw_connector(c, x0 + case_w, yb_h + case_h / 2, yb_b + case_h / 2, x_r1)
+
+            r1_center = y0 - y_offset - case_h
+            _draw_case_vide(c, x_r1, r1_center - case_h / 2, case_w, case_h, fs)
+            round1_y_centers.append(r1_center)
+            y_offset += 2 * case_h
+        else:
+            yb = y0 - y_offset - case_h
+            _draw_case_remplie(c, x_r1, yb, case_w, case_h, slot[0], slot[1], fs)
+            round1_y_centers.append(yb + case_h / 2)
+            y_offset += case_h
+
+    # ── Colonne gagnant : une case vide par paire de round1 ───────────────────
+    for m in range(len(round1_y_centers) // 2):
+        y_h = round1_y_centers[2 * m]
+        y_b = round1_y_centers[2 * m + 1]
+        y_center = (y_h + y_b) / 2
+        _draw_case_vide(c, x_gagnant, y_center - case_h / 2, case_w, case_h, fs)
+        _draw_connector(c, x_r1 + case_w, y_h, y_b, x_gagnant)
+
+
+def _render_quart_vide(
+    c,
+    n_quart: int,
+    x0: float,
+    y_top: float,
+    case_w: float,
+    case_h: float,
+    conn_w: float,
+    fs: float,
+    draw_3e: bool,
+    y_3e_top: float,
+) -> None:
+    """
+    Dessine le bracket des quarts de finale avec toutes les cases vides.
+
+    n_quart doit être une puissance de 2.
+    """
+    n_rounds = int(math.log2(n_quart))
+
+    # ── En-têtes ──────────────────────────────────────────────────────────────
+    c.setFillColor(_GRIS_TITRE_COL)
+    c.setFont("Helvetica-Bold", fs + 0.5)
+    for col in range(n_rounds + 1):
+        x_col = x0 + col * (case_w + conn_w)
+        label = _nom_tour(n_quart // (2**col)) if col < n_rounds else "Gagnant"
+        c.drawCentredString(x_col + case_w / 2, y_top, label)
+
+    y0 = y_top - 0.4 * cm
+
+    # ── Première colonne : n_quart cases vides ────────────────────────────────
+    round_y_centers: list[float] = []
+    for i in range(n_quart):
+        yb = y0 - i * case_h - case_h
+        _draw_case_vide(c, x0, yb, case_w, case_h, fs)
+        round_y_centers.append(yb + case_h / 2)
+
+    # ── Tours suivants ────────────────────────────────────────────────────────
+    for tour in range(1, n_rounds + 1):
+        n_matches = len(round_y_centers) // 2
+        x_col = x0 + tour * (case_w + conn_w)
         x_prev_right = x_col - conn_w
         next_centers: list[float] = []
 
@@ -626,6 +730,108 @@ def generer(
     return sortie.resolve()
 
 
+# ── Génération du couple de PDF huitièmes / quarts ───────────────────────────
+
+
+def generer_split(
+    titre: str,
+    bracket: dict,
+    sortie_huitieme: Path,
+    sortie_quart: Path,
+    logo_data: dict | None,
+) -> tuple[Path, Path]:
+    """
+    Génère deux feuilles quand 2P ≥ 16 :
+    - sortie_huitieme : 8es de finale (prél. + round1 pré-rempli + colonne Quarts →)
+    - sortie_quart    : quarts de finale → finale (tout vide) + match 3e place
+
+    Retourne les chemins absolus des deux PDF produits.
+    """
+    sortie_huitieme.parent.mkdir(parents=True, exist_ok=True)
+    sortie_quart.parent.mkdir(parents=True, exist_ok=True)
+
+    q = bracket["q"]
+    r = bracket["r"]
+    has_prelim = r > 0
+    n_bracket = (
+        q + r
+    )  # hauteur du bracket 8es en nombre de cases (prél. comptent double)
+    n_quart = q // 2
+    n_rounds_q = int(math.log2(n_quart))
+
+    marge = 1.0 * cm
+    logo_h = (logo_data.get("logo_h_cm", 3.5) * cm) if logo_data else 0
+    titre_h = 1.3 * cm
+    pw_l, ph_l = landscape(A4)
+
+    y_top = ph_l - marge - logo_h - titre_h
+
+    # ── Feuille des 8es de finale ──────────────────────────────────────────────
+    n_cols_h = 2 + (1 if has_prelim else 0)
+    zone_w = pw_l - 2 * marge
+    cw_h = zone_w / (n_cols_h + 0.22 * (n_cols_h - 1))
+    conn_w_h = cw_h * 0.22
+
+    case_h_h = max(MIN_CASE_H, (y_top - marge - 0.4 * cm) / n_bracket)
+    fs_h = 8 if case_h_h >= 10 * mm else 7
+
+    titre_h_doc = f"{titre} — 8es de finale"
+    c = rl_canvas.Canvas(str(sortie_huitieme), pagesize=(pw_l, ph_l))
+    c.setTitle(titre_h_doc)
+    draw_logos(c, pw_l, ph_l, marge, logo_data)
+    c.setFillColor(_GRIS_TITRE_COL)
+    c.setFont("Helvetica-Bold", 13)
+    c.drawString(marge, ph_l - marge - 0.75 * cm, titre_h_doc)
+
+    _render_huitieme(
+        c,
+        bracket,
+        x0=marge,
+        y_top=y_top,
+        case_w=cw_h,
+        case_h=case_h_h,
+        conn_w=conn_w_h,
+        fs=fs_h,
+    )
+
+    c.showPage()
+    _draw_page_instructions(c, titre_h_doc, bracket, logo_data, pw_l, ph_l, marge)
+    c.save()
+
+    # ── Feuille des quarts de finale ───────────────────────────────────────────
+    n_cols_q = n_rounds_q + 1
+    cw_q = zone_w / (n_cols_q + 0.22 * (n_cols_q - 1))
+    conn_w_q = cw_q * 0.22
+
+    case_h_q = max(MIN_CASE_H, (y_top - marge - _OVERHEAD_LAYOUT) / (n_quart + 2))
+    fs_q = 8 if case_h_q >= 10 * mm else 7
+    y_3e_top = y_top - 0.4 * cm - n_quart * case_h_q - 0.3 * cm
+
+    titre_q_doc = f"{titre} — Quarts de finale"
+    c2 = rl_canvas.Canvas(str(sortie_quart), pagesize=(pw_l, ph_l))
+    c2.setTitle(titre_q_doc)
+    draw_logos(c2, pw_l, ph_l, marge, logo_data)
+    c2.setFillColor(_GRIS_TITRE_COL)
+    c2.setFont("Helvetica-Bold", 13)
+    c2.drawString(marge, ph_l - marge - 0.75 * cm, titre_q_doc)
+
+    _render_quart_vide(
+        c2,
+        n_quart,
+        x0=marge,
+        y_top=y_top,
+        case_w=cw_q,
+        case_h=case_h_q,
+        conn_w=conn_w_q,
+        fs=fs_q,
+        draw_3e=True,
+        y_3e_top=y_3e_top,
+    )
+    c2.save()
+
+    return sortie_huitieme.resolve(), sortie_quart.resolve()
+
+
 # ── Formatage des groupes de N ────────────────────────────────────────────────
 
 
@@ -678,39 +884,37 @@ def generer_toutes_finales(
         ns = groups[p_poules]
         bracket = placer_equipes_sans_bye(p_poules)
         r = bracket["r"]
+        n_qualifies = 2 * p_poules
 
         ns_fichier = _format_ns_fichier(ns)
         ns_titre = _format_ns_titre(ns)
-        fname = f"finales_{ns_fichier}eq.pdf"
         titre = f"Phases finales — {ns_titre}"
-        chemin = output / fname
 
-        generer(titre, bracket, chemin, logo_data)
-
-        etages = "2 étages pré-remplis" if r > 0 else "1 étage pré-rempli"
-        info = f"{p_poules} poules, {2 * p_poules} qualifiés, {r} prélim., {etages}"
-        if len(ns) > 1:
-            info += f", N={ns}"
-        print(f"  {chemin}  [{info}]")
-        generated.append(chemin)
+        if n_qualifies >= 16:
+            # Feuilles séparées : 8es de finale + quarts de finale
+            chemin_h = output / f"finales_huitieme_{ns_fichier}eq.pdf"
+            chemin_q = output / f"finales_quart_{ns_fichier}eq.pdf"
+            ph, pq = generer_split(titre, bracket, chemin_h, chemin_q, logo_data)
+            generated.extend([ph, pq])
+            info = (
+                f"{p_poules} poules, {n_qualifies} qualifiés,"
+                f" {r} prélim., split 8es+quarts"
+            )
+            if len(ns) > 1:
+                info += f", N={ns}"
+            print(f"  {chemin_h}  [{info}]")
+            print(f"  {chemin_q}  [{info}]")
+        else:
+            chemin = output / f"finales_{ns_fichier}eq.pdf"
+            generer(titre, bracket, chemin, logo_data)
+            etages = "2 étages pré-remplis" if r > 0 else "1 étage pré-rempli"
+            info = f"{p_poules} poules, {n_qualifies} qualifiés, {r} prélim., {etages}"
+            if len(ns) > 1:
+                info += f", N={ns}"
+            print(f"  {chemin}  [{info}]")
+            generated.append(chemin)
 
     return generated
-
-
-# ── Chargement logo.yaml ──────────────────────────────────────────────────────
-
-
-def _charger_logo_yaml(chemin: Path) -> dict | None:
-    try:
-        import yaml
-
-        with open(chemin, encoding="utf-8") as f:
-            return yaml.safe_load(f)
-    except ImportError:
-        import json
-
-        with open(chemin, encoding="utf-8") as f:
-            return json.load(f)
 
 
 # ── Interface en ligne de commande ────────────────────────────────────────────
@@ -767,7 +971,7 @@ def main() -> None:
 
     logo_data = None
     if args.logo_yaml and args.logo_yaml.exists():
-        logo_data = _charger_logo_yaml(args.logo_yaml)
+        logo_data = charger_logo_yaml(args.logo_yaml)
 
     pdfs = generer_toutes_finales(
         teams_min=args.teams_min,

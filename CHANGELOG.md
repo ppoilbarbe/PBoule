@@ -3,6 +3,26 @@
 Tous les changements notables de ce projet sont documentés ici.
 Ce projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
+## [0.4.0] – 2026-04-22
+
+### Added
+- **`GUIDE_ORGANISATEUR.md`** : guide de l'organisateur étape par étape (inscription,
+  phase de poules avec tableau de répartition N=6–32 et instruction impression recto-verso,
+  phase finale) ; compilé en `guide_organisateur.pdf` via `make guide-pdf` et intégré dans
+  `make all`, `make pages` et le site de documentation GitHub Pages.
+- **`python/pboule/`** : package partagé (`poules.py`, `palette.py`, `logos.py`, `utils.py`) ;
+  tous les scripts de génération importent depuis ce package.
+- **Makefile** : cible `guide-pdf` ; paramètres de compétition en `?=` pour autoriser la
+  surcharge par variable d'environnement ou ligne de commande ; aide mise à jour.
+
+### Changed
+- **`PBOULE.md`** : `guide_organisateur.pdf` ajouté aux documents produits.
+- **`README.md`** : noms de fichiers de poules corrigés (`poule_A.pdf` au lieu de
+  `poule_A_04eq.pdf`) ; section paramètres enrichie (trois modes de surcharge) ;
+  dépendances des cibles `all` et `pages` mises à jour ; `guide_organisateur.pdf`
+  ajouté au site Pages.
+- **`CLAUDE.md`** : reformulation concise (mêmes directives, moins de tokens).
+
 ## [0.3.0] – 2026-04-17
 
 ### Added

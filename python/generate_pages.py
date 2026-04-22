@@ -230,6 +230,13 @@ def _section_documents(docs_dir: Path) -> str:
         "",
     ]
 
+    # Guide de l'organisateur
+    guide = [p for p in pdfs if p.name.startswith("guide_")]
+    if guide:
+        parts += ["## Guide de l'organisateur", ""]
+        parts += [_pdf_link(p) for p in guide]
+        parts.append("")
+
     # Feuille d'inscription
     inscription = [p for p in pdfs if p.name.startswith("feuille_")]
     if inscription:
@@ -292,11 +299,11 @@ def generer(
             tmp.write(docs_section)
             tmp_docs = Path(tmp.name)
 
-        # Pandoc : PBOULE.md [+ logo-creation] + docs + CHANGELOG → index.html
-        sources = [str(pboule_md)]
+        # Pandoc : docs + PBOULE.md [+ logo-creation] + CHANGELOG → index.html
+        sources = [str(tmp_docs), str(pboule_md)]
         if logo_creation_md is not None and logo_creation_md.exists():
             sources.append(str(logo_creation_md))
-        sources += [str(tmp_docs), str(changelog_md)]
+        sources += [str(changelog_md)]
 
         cmd = [
             "pandoc",

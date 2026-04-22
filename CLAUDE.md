@@ -1,32 +1,24 @@
-# Instructions générales
+# Directives
 
-Après chaque modification du projet, maintenir à jour les fichiers de référence concernés :
+## Fichiers de référence — mettre à jour après chaque modification
 
 | Fichier | Rôle |
 |---|---|
 | **PBOULE.md** | Spécifications du domaine (règles, formats, algorithmes) — pas de contenu opérationnel |
-| **README.md** | Documentation utilisateur (cibles Makefile, structure du projet, pipeline CI/CD) — pas de spécifications |
+| **README.md** | Documentation utilisateur (cibles Makefile, structure, CI/CD) — pas de spécifications |
 | **Makefile** | Cibles de génération et paramètres |
 | **CLAUDE.md** | Instructions de travail pour Claude |
 
-# Langue
-* La langue par défaut pour toutes les interactions est le **français**.
-* Toutes les réponses, explications, messages d'erreur et commentaires doivent être en français.
-* Les messages de commit git doivent être rédigés en français.
-* Les commentaires dans le code doivent être en français.
-* Les noms de variables, fonctions et fichiers restent en anglais (convention technique).
+## Langue
 
-# Spécifications
-* Les spécifications du projet sont enregistrées dans le fichier **PBOULE.md** et doivent être lues depuis ce fichier au début de chaque tâche nécessitant une compréhension du domaine.
+- Interactions, réponses, commentaires code : **français**
+- Identifiants (variables, fonctions, fichiers) : **anglais**
+- Commits git et noms de tags : **français**
+- Spécifications domaine : lire **PBOULE.md** en début de tâche
 
-# Workflow Git
+## Workflow Git
 
-**Avant tout commit :**
-```
-pre-commit run --all-files
-```
-Vérifier que tous les hooks passent (code 0, aucun fichier modifié). Ne jamais publier
-si cette commande échoue ou modifie des fichiers.
+**Avant tout commit :** `pre-commit run --all-files` — code 0, aucun fichier modifié.
 
 **Avant tout push — squash obligatoire :**
 ```
@@ -34,23 +26,12 @@ git log --oneline origin/main..HEAD   # compter N commits
 git reset --soft HEAD~N
 git commit -m "..."
 ```
-Un push = un commit. Le message de commit résume **tous** les changements inclus.
+Un push = un commit résumant tous les changements inclus.
 
-**Messages de commit et noms de tags** : toujours en français.
+**Avant tout tag/release :** mettre à jour `CHANGELOG.md` avec `## [X.Y.Z] – YYYY-MM-DD` (Added / Changed / Fixed). Le pipeline CI extrait les notes depuis ce fichier.
 
-**Avant tout tag/release :**
-Mettre à jour `CHANGELOG.md` avec une section `## [X.Y.Z] – YYYY-MM-DD` (Added /
-Changed / Fixed). Le pipeline CI extrait les notes de release depuis ce fichier.
+## Environnement
 
-# Environnement
-
-## Général
-* L'environnement conda par défaut est **pboule**. Toutes les commandes Python doivent être exécutées dans cet environnement.
-* Les scripts Python de génération sont dans le sous-répertoire **python/**.
-* Canal conda exclusivement **conda-forge** : ne jamais utiliser `defaults`. Toujours avoir `nodefaults` dans `environment.yml` et `conda-remove-defaults: "true"` dans chaque étape `setup-miniconda` du CI.
-
-## Installation (environnement conda)
-
-```
-make env
-```
+- Conda : env **pboule** — canal exclusivement **conda-forge** (`nodefaults` dans `environment.yml` ; `conda-remove-defaults: "true"` dans chaque step `setup-miniconda` du CI)
+- Scripts Python : sous-répertoire **python/**
+- Installation : `make env`

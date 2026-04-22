@@ -36,13 +36,9 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from logos import draw_logos
-
-_NOIR = colors.black
-_BLANC = colors.white
-_GRIS_FOND = colors.HexColor("#F0F0F0")
-_GRIS_GRILLE = colors.HexColor("#AAAAAA")
-_BLEU = colors.HexColor("#1565C0")  # couleur titres / en-têtes
+from pboule.logos import draw_logos
+from pboule.palette import _BLANC, _BLEU, _GRIS_FOND, _GRIS_GRILLE, _NOIR
+from pboule.utils import charger_logo_yaml
 
 N_MEMBRES = 3  # membres par équipe
 MIN_H_SUB = 0.50 * cm  # hauteur minimale acceptable d'une sous-ligne
@@ -292,23 +288,6 @@ def generer(
     return sortie.resolve()
 
 
-# ── Chargement du fichier logo ────────────────────────────────────────────────
-
-
-def _charger_logo_yaml(chemin: Path) -> dict | None:
-    """Charge logo.yaml (format JSON, compatible YAML si pyyaml est installé)."""
-    try:
-        import yaml  # pyyaml, optionnel
-
-        with open(chemin, encoding="utf-8") as f:
-            return yaml.safe_load(f)
-    except ImportError:
-        import json
-
-        with open(chemin, encoding="utf-8") as f:
-            return json.load(f)
-
-
 # ── Interface en ligne de commande ────────────────────────────────────────────
 
 
@@ -342,7 +321,7 @@ def main() -> None:
 
     logo_data = None
     if args.logo_yaml and args.logo_yaml.exists():
-        logo_data = _charger_logo_yaml(args.logo_yaml)
+        logo_data = charger_logo_yaml(args.logo_yaml)
 
     chemin = args.output / "feuille_inscription.pdf"
     pdf = generer(n_equipes=args.n_equipes, sortie=chemin, logo_data=logo_data)
